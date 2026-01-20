@@ -480,3 +480,82 @@ func TestE2E_WorksFromSubdirectory(t *testing.T) {
 		t.Errorf("expected output to mention key-vault, got: %s", output)
 	}
 }
+
+func TestE2E_TofuFmt(t *testing.T) {
+	skipIfNoTofu(t)
+
+	tfplBinary := buildTfpl(t)
+
+	// Create a temp directory with tofu config
+	tmpDir := t.TempDir()
+
+	// Create a .tfpl.yml that uses tofu
+	configContent := "binary: tofu\nroot: .\n"
+	if err := os.WriteFile(filepath.Join(tmpDir, ".tfpl.yml"), []byte(configContent), 0644); err != nil {
+		t.Fatalf("failed to write config: %v", err)
+	}
+
+	// Create components directory with a simple terraform file
+	componentDir := filepath.Join(tmpDir, "components", "test-component")
+	if err := os.MkdirAll(componentDir, 0755); err != nil {
+		t.Fatalf("failed to create component dir: %v", err)
+	}
+
+	tfContent := "variable \"test\" {\n  type = string\n}\n"
+	if err := os.WriteFile(filepath.Join(componentDir, "main.tf"), []byte(tfContent), 0644); err != nil {
+		t.Fatalf("failed to write tf file: %v", err)
+	}
+
+	// Run fmt with tofu
+	cmd := exec.Command(tfplBinary, "fmt", "-c", "test-component")
+	cmd.Dir = tmpDir
+	output, err := cmd.CombinedOutput()
+	if err != nil {
+		t.Fatalf("tfpl fmt with tofu failed: %v\nOutput: %s", err, output)
+	}
+
+	// Verify tofu was used (output mentions tofu or the component)
+	if !strings.Contains(string(output), "test-component") {
+		t.Errorf("expected output to mention test-component, got: %s", output)
+	}
+}
+
+func TestE2E_TofuInit(t *testing.T) {
+	skipIfNoTofu(t)
+
+	tfplBinary := buildTfpl(t)
+
+	// Create a temp directory with tofu config
+	tmpDir := t.TempDir()
+
+	// Create a .tfpl.yml that uses tofu
+	configContent := "binary: tofu\nroot: .\n"
+	if err := os.WriteFile(filepath.Join(tmpDir, ".tfpl.yml"), []byte(configContent), 0644); err != nil {
+		t.Fatalf("failed to write config: %v", err)
+	}
+
+	// Create components directory with a simple terraform file
+	componentDir := filepath.Join(tmpDir, "components", "test-component")
+	if err := os.MkdirAll(componentDir, 0755); err != nil {
+		t.Fatalf("failed to create component dir: %v", err)
+	}
+
+	tfContent := "terraform {\n}\n\nvariable \"test\" {\n  type = string\n}\n"
+	if err := os.WriteFile(filepath.Join(componentDir, "main.tf"), []byte(tfContent), 0644); err != nil {
+		t.Fatalf("failed to write tf file: %v", err)
+	}
+
+	// Run init with tofu
+	cmd := exec.Command(tfplBinary, "init", "-c", "test-component")
+	cmd.Dir = tmpDir
+	output, err := cmd.CombinedOutput()
+	if err != nil {
+		t.Fatalf("tfpl init with tofu failed: %v\nOutput: %s", err, output)
+	}
+
+	outputStr := string(output)
+	// Tofu outputs similar messages to terraform
+	if !strings.Contains(outputStr, "Initializing") {
+		t.Errorf("expected 'Initializing' in output, got: %s", outputStr)
+	}
+}
