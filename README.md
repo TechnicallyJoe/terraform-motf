@@ -4,8 +4,9 @@ A command-line tool for working with polylith-style Terraform repositories. `tfp
 
 ## Features
 
-- **Simple commands**: Run `init`, `fmt`, and `validate` on components, bases, or projects
+- **Simple commands**: Run `init`, `fmt`, `validate`, and `test` on components, bases, or projects
 - **Configurable**: Support for both `terraform` and `tofu` via `.tfpl.yml`
+- **Test support**: Run terratests or native terraform/tofu tests on modules
 - **Smart discovery**: Recursively finds modules in nested subdirectories
 - **Clash detection**: Warns when multiple modules share the same name
 
@@ -67,6 +68,17 @@ tfpl validate k8s-argocd      # Validate k8s-argocd
 tfpl val -i spacelift-modules # Init then validate spacelift-modules
 ```
 
+#### `tfpl test`
+Run tests on a module using the configured test engine (terratest by default):
+
+```bash
+tfpl test storage-account           # Run tests on storage-account
+tfpl test storage-account -a -v     # Run tests with verbose output
+tfpl test storage-account -a -timeout=30m  # Run tests with custom timeout
+```
+
+The test command uses the configured test engine (default: terratest) to run tests. For terratest, this executes `go test ./...` in the module directory. Tests should be defined within each module directory.
+
 #### `tfpl config`
 Show current configuration:
 
@@ -79,6 +91,10 @@ Output:
 Current configuration:
   Root:   iac
   Binary: terraform
+
+Test configuration:
+  Engine: terratest
+  Args:   (none)
 ```
 
 ### Flags
@@ -99,6 +115,12 @@ tfpl fmt storage-account
 
 # Validate a base (with init first)
 tfpl val -i k8s-argocd
+
+# Run tests on a module
+tfpl test storage-account
+
+# Run tests with additional arguments
+tfpl test storage-account -a -v -a -timeout=30m
 
 # Use explicit path
 tfpl fmt --path iac/components/azurerm/storage-account
@@ -125,6 +147,18 @@ root: iac
 # The Terraform binary to use: "terraform" or "tofu"
 # Default: "terraform"
 binary: terraform
+
+# Test configuration
+test:
+  # Test engine to use: "terratest", "terraform", or "tofu"
+  # Default: "terratest"
+  engine: terratest
+  
+  # Additional arguments passed to the test command
+  # For terratest: these are passed to "go test ./... <args>"
+  # For terraform/tofu: these are passed to "terraform test <args>"
+  # Default: ""
+  args: ""
 ```
 
 ### Configuration Options
@@ -133,8 +167,10 @@ binary: terraform
 |--------|------|---------|-------------|
 | `root` | string | `""` | Directory containing components/bases/projects (relative to repo root) |
 | `binary` | string | `"terraform"` | Binary to use: `"terraform"` or `"tofu"` |
+| `test.engine` | string | `"terratest"` | Test engine: `"terratest"`, `"terraform"`, or `"tofu"` |
+| `test.args` | string | `""` | Additional arguments passed to the test command |
 
-The configuration file is optional. If not present, `tfpl` will use default values (empty root, "terraform" binary).
+The configuration file is optional. If not present, `tfpl` will use default values (empty root, "terraform" binary, "terratest" engine).
 
 ## Expected Directory Structure
 

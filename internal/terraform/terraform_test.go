@@ -153,3 +153,31 @@ func TestBuildArgs_PreservesArgOrder(t *testing.T) {
 		}
 	}
 }
+
+func TestRunner_RunTest_UnsupportedEngine(t *testing.T) {
+	cfg := &config.Config{
+		Root:   "/test/root",
+		Binary: "terraform",
+		Test: &config.TestConfig{
+			Engine: "unsupported",
+			Args:   "",
+		},
+	}
+
+	runner := NewRunner(cfg)
+	tmpDir := t.TempDir()
+
+	err := runner.RunTest(tmpDir)
+	if err == nil {
+		t.Error("expected error for unsupported test engine, got nil")
+	}
+}
+
+func TestRunner_RunTest_DefaultEngine(t *testing.T) {
+	cfg := config.DefaultConfig()
+	_ = NewRunner(cfg)
+
+	if cfg.Test.Engine != "terratest" {
+		t.Errorf("expected default test engine to be 'terratest', got '%s'", cfg.Test.Engine)
+	}
+}

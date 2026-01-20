@@ -63,6 +63,55 @@ func (r *Runner) RunValidate(dir string, extraArgs ...string) error {
 	return cmd.Run()
 }
 
+// RunTest executes tests based on the configured test engine
+func (r *Runner) RunTest(dir string, extraArgs ...string) error {
+	var cmd *exec.Cmd
+	var cmdArgs []string
+
+	switch r.config.Test.Engine {
+	case "terratest":
+		// Terratest uses Go test
+		cmdArgs = []string{"test", "./..."}
+		
+		// Add config args if present
+		if r.config.Test.Args != "" {
+			configArgs := strings.Fields(r.config.Test.Args)
+			cmdArgs = append(cmdArgs, configArgs...)
+		}
+		
+		// Add extra args from command line
+		cmdArgs = append(cmdArgs, extraArgs...)
+		
+		cmd = exec.Command("go", cmdArgs...)
+		fmt.Printf("Running go %s in %s\n", strings.Join(cmdArgs, " "), dir)
+	case "terraform", "tofu":
+		// Terraform/Tofu native test command
+		cmdArgs = []string{"test"}
+		
+		// Add config args if present
+		if r.config.Test.Args != "" {
+			configArgs := strings.Fields(r.config.Test.Args)
+			cmdArgs = append(cmdArgs, configArgs...)
+		}
+		
+		// Add extra args from command line
+		cmdArgs = append(cmdArgs, extraArgs...)
+		
+		binary := r.config.Test.Engine
+		cmd = exec.Command(binary, cmdArgs...)
+		fmt.Printf("Running %s %s in %s\n", binary, strings.Join(cmdArgs, " "), dir)
+	default:
+		return fmt.Errorf("unsupported test engine: %s", r.config.Test.Engine)
+	}
+
+	cmd.Dir = dir
+	cmd.Stdout = os.Stdout
+	cmd.Stderr = os.Stderr
+	cmd.Stdin = os.Stdin
+
+	return cmd.Run()
+}
+
 // BuildArgs constructs the argument list for a command with extra arguments
 func BuildArgs(command string, extraArgs ...string) []string {
 	return append([]string{command}, extraArgs...)

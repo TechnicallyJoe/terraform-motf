@@ -8,11 +8,18 @@ import (
 	"gopkg.in/yaml.v3"
 )
 
+// TestConfig represents the test configuration section
+type TestConfig struct {
+	Engine string `yaml:"engine"`
+	Args   string `yaml:"args"`
+}
+
 // Config represents the .tfpl.yml configuration file
 type Config struct {
-	Root       string `yaml:"root"`
-	Binary     string `yaml:"binary"`
-	ConfigPath string `yaml:"-"` // Path to the config file, if found
+	Root       string      `yaml:"root"`
+	Binary     string      `yaml:"binary"`
+	Test       *TestConfig `yaml:"test"`
+	ConfigPath string      `yaml:"-"` // Path to the config file, if found
 }
 
 // DefaultConfig returns a Config with default values
@@ -20,6 +27,10 @@ func DefaultConfig() *Config {
 	return &Config{
 		Root:   "",
 		Binary: "terraform",
+		Test: &TestConfig{
+			Engine: "terratest",
+			Args:   "",
+		},
 	}
 }
 
@@ -76,6 +87,18 @@ func Load(startDir string) (*Config, error) {
 			// Validate binary
 			if cfg.Binary != "terraform" && cfg.Binary != "tofu" {
 				return nil, fmt.Errorf("invalid binary '%s' in config: must be 'terraform' or 'tofu'", cfg.Binary)
+			}
+
+			// Ensure Test config has defaults if not set
+			if cfg.Test == nil {
+				cfg.Test = &TestConfig{
+					Engine: "terratest",
+					Args:   "",
+				}
+			} else {
+				if cfg.Test.Engine == "" {
+					cfg.Test.Engine = "terratest"
+				}
 			}
 
 			// Store the config file path

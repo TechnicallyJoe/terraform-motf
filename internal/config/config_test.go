@@ -322,3 +322,101 @@ func TestLoad_InvalidBinary(t *testing.T) {
 		t.Error("expected error for invalid binary, got nil")
 	}
 }
+
+func TestLoad_TestConfigDefaults(t *testing.T) {
+	tmpDir := t.TempDir()
+
+	// Create .git directory
+	gitDir := filepath.Join(tmpDir, ".git")
+	if err := os.Mkdir(gitDir, 0755); err != nil {
+		t.Fatalf("failed to create .git directory: %v", err)
+	}
+
+	// Load without config file - should get defaults
+	cfg, err := Load(tmpDir)
+	if err != nil {
+		t.Fatalf("Load() returned error: %v", err)
+	}
+
+	if cfg.Test == nil {
+		t.Fatal("expected Test config to be initialized")
+	}
+	if cfg.Test.Engine != "terratest" {
+		t.Errorf("expected Test.Engine to be 'terratest', got '%s'", cfg.Test.Engine)
+	}
+	if cfg.Test.Args != "" {
+		t.Errorf("expected Test.Args to be empty, got '%s'", cfg.Test.Args)
+	}
+}
+
+func TestLoad_TestConfigFromFile(t *testing.T) {
+	tmpDir := t.TempDir()
+
+	// Create .git directory
+	gitDir := filepath.Join(tmpDir, ".git")
+	if err := os.Mkdir(gitDir, 0755); err != nil {
+		t.Fatalf("failed to create .git directory: %v", err)
+	}
+
+	// Create .tfpl.yml with test config
+	configContent := `binary: terraform
+test:
+  engine: terraform
+  args: -verbose
+`
+	configPath := filepath.Join(tmpDir, ".tfpl.yml")
+	if err := os.WriteFile(configPath, []byte(configContent), 0644); err != nil {
+		t.Fatalf("failed to create config file: %v", err)
+	}
+
+	cfg, err := Load(tmpDir)
+	if err != nil {
+		t.Fatalf("Load() returned error: %v", err)
+	}
+
+	if cfg.Test == nil {
+		t.Fatal("expected Test config to be initialized")
+	}
+	if cfg.Test.Engine != "terraform" {
+		t.Errorf("expected Test.Engine to be 'terraform', got '%s'", cfg.Test.Engine)
+	}
+	if cfg.Test.Args != "-verbose" {
+		t.Errorf("expected Test.Args to be '-verbose', got '%s'", cfg.Test.Args)
+	}
+}
+
+func TestLoad_TestConfigPartialFromFile(t *testing.T) {
+	tmpDir := t.TempDir()
+
+	// Create .git directory
+	gitDir := filepath.Join(tmpDir, ".git")
+	if err := os.Mkdir(gitDir, 0755); err != nil {
+		t.Fatalf("failed to create .git directory: %v", err)
+	}
+
+	// Create .tfpl.yml with partial test config (only args)
+	configContent := `binary: terraform
+test:
+  args: -v -timeout=30m
+`
+	configPath := filepath.Join(tmpDir, ".tfpl.yml")
+	if err := os.WriteFile(configPath, []byte(configContent), 0644); err != nil {
+		t.Fatalf("failed to create config file: %v", err)
+	}
+
+	cfg, err := Load(tmpDir)
+	if err != nil {
+		t.Fatalf("Load() returned error: %v", err)
+	}
+
+	if cfg.Test == nil {
+		t.Fatal("expected Test config to be initialized")
+	}
+	// Engine should default to terratest even if not specified
+	if cfg.Test.Engine != "terratest" {
+		t.Errorf("expected Test.Engine to default to 'terratest', got '%s'", cfg.Test.Engine)
+	}
+	if cfg.Test.Args != "-v -timeout=30m" {
+		t.Errorf("expected Test.Args to be '-v -timeout=30m', got '%s'", cfg.Test.Args)
+	}
+}

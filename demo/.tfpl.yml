@@ -2,3 +2,8 @@
 # Root is set to current directory (where .tfpl.yml is found)
 root: .
 binary: terraform
+
+# Test configuration
+test:
+  engine: "terratest"  # Options: terratest, terraform, tofu
+  args: ""             # Additional arguments passed to the test command
