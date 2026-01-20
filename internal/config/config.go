@@ -22,9 +22,40 @@ func DefaultConfig() *Config {
 	}
 }
 
+// isGitRoot checks if the given directory is the root of a Git repository
+func isGitRoot(dir string) bool {
+	gitPath := filepath.Join(dir, ".git")
+	info, err := os.Stat(gitPath)
+	if err != nil {
+		return false
+	}
+	// .git can be a directory (regular repo) or a file (worktree/submodule)
+	return info.IsDir() || info.Mode().IsRegular()
+}
+
+// findGitRoot finds the root of the Git repository starting from startDir
+func findGitRoot(startDir string) string {
+	dir := startDir
+	for {
+		if isGitRoot(dir) {
+			return dir
+		}
+		parent := filepath.Dir(dir)
+		if parent == dir {
+			// Reached filesystem root, no git repo found
+			return ""
+		}
+		dir = parent
+	}
+}
+
 // Load searches for .tfpl.yml starting from startDir and walking up the directory tree
+// until it reaches the Git repository root
 func Load(startDir string) (*Config, error) {
 	cfg := DefaultConfig()
+
+	// Find the git root first - this will be our default Root value
+	gitRoot := findGitRoot(startDir)
 
 	// Walk up the directory tree looking for .tfpl.yml
 	dir := startDir
@@ -46,18 +77,29 @@ func Load(startDir string) (*Config, error) {
 				return nil, fmt.Errorf("invalid binary '%s' in config: must be 'terraform' or 'tofu'", cfg.Binary)
 			}
 
+			// If Root is not set in config, default to git root
+			if cfg.Root == "" {
+				cfg.Root = gitRoot
+			}
+
 			return cfg, nil
+		}
+
+		// Stop if we've reached the Git repository root
+		if isGitRoot(dir) {
+			break
 		}
 
 		// Move up one directory
 		parent := filepath.Dir(dir)
 		if parent == dir {
-			// Reached root, no config file found
+			// Reached filesystem root, no config file found
 			break
 		}
 		dir = parent
 	}
 
-	// No config file found, return defaults
+	// No config file found, set Root to git root and return defaults
+	cfg.Root = gitRoot
 	return cfg, nil
 }
