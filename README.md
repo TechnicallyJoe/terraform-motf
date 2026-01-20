@@ -44,27 +44,27 @@ go build -o tfpl .
 Run `terraform init` or `tofu init` on a module:
 
 ```bash
-tfpl init -c storage-account       # Init component
-tfpl init -b k8s-argocd           # Init base
-tfpl init -p spacelift-modules    # Init project
+tfpl init storage-account       # Init storage-account (searches components, bases, and projects)
+tfpl init k8s-argocd           # Init k8s-argocd
+tfpl init spacelift-modules    # Init spacelift-modules
 ```
 
 #### `tfpl fmt`
 Run `terraform fmt` or `tofu fmt` on a module:
 
 ```bash
-tfpl fmt -c storage-account       # Format component
-tfpl fmt -b k8s-argocd           # Format base
-tfpl fmt -i -c storage-account   # Init then format component
+tfpl fmt storage-account       # Format storage-account
+tfpl fmt k8s-argocd           # Format k8s-argocd
+tfpl fmt -i storage-account   # Init then format storage-account
 ```
 
 #### `tfpl val` (or `validate`)
 Run `terraform validate` or `tofu validate` on a module:
 
 ```bash
-tfpl val -c storage-account       # Validate component
-tfpl validate -b k8s-argocd      # Validate base
-tfpl val -i -p spacelift-modules # Init then validate project
+tfpl val storage-account       # Validate storage-account
+tfpl validate k8s-argocd      # Validate k8s-argocd
+tfpl val -i spacelift-modules # Init then validate spacelift-modules
 ```
 
 #### `tfpl config`
@@ -85,11 +85,9 @@ Current configuration:
 
 | Flag | Short | Description |
 |------|-------|-------------|
-| `--component` | `-c` | Component name to operate on |
-| `--base` | `-b` | Base name to operate on |
-| `--project` | `-p` | Project name to operate on |
-| `--path` | | Explicit path (mutually exclusive with -c, -b, -p) |
+| `--path` | | Explicit path (mutually exclusive with module name) |
 | `--init` | `-i` | Run init before the command (for `fmt` and `val`) |
+| `--args` | `-a` | Extra arguments to pass to terraform/tofu (can be specified multiple times) |
 | `--version` | `-v` | Show version |
 | `--help` | `-h` | Show help |
 
@@ -97,16 +95,19 @@ Current configuration:
 
 ```bash
 # Format a component
-tfpl fmt -c storage-account
+tfpl fmt storage-account
 
 # Validate a base (with init first)
-tfpl val -i -b k8s-argocd
+tfpl val -i k8s-argocd
 
 # Use explicit path
 tfpl fmt --path iac/components/azurerm/storage-account
 
 # Init a project
-tfpl init -p spacelift-modules
+tfpl init spacelift-modules
+
+# Pass extra arguments
+tfpl init storage-account -a -upgrade -a -reconfigure
 
 # Show version
 tfpl -v
@@ -176,8 +177,8 @@ iac/components/
 You can refer to modules by name regardless of their nesting:
 
 ```bash
-tfpl fmt -c storage-account  # Finds iac/components/azurerm/storage-account
-tfpl fmt -c s3-bucket       # Finds iac/components/aws/s3-bucket
+tfpl fmt storage-account  # Finds iac/components/azurerm/storage-account
+tfpl fmt s3-bucket       # Finds iac/components/aws/s3-bucket
 ```
 
 ### Name Clashes
@@ -185,7 +186,7 @@ tfpl fmt -c s3-bucket       # Finds iac/components/aws/s3-bucket
 If multiple modules share the same name in different locations, `tfpl` will detect the clash and provide a helpful error:
 
 ```
-Error: multiple components named 'naming' found - name clash detected:
+Error: multiple modules named 'naming' found - name clash detected:
   1. /path/to/repo/iac/components/azurerm/naming
   2. /path/to/repo/iac/components/aws/naming
 
@@ -198,21 +199,27 @@ To resolve this, use the `--path` flag with an explicit path:
 tfpl fmt --path iac/components/azurerm/naming
 ```
 
+### Module Type Detection
+
+`tfpl` automatically searches for modules across all three directories (components, bases, and projects). You don't need to specify the module type - just provide the name:
+
+```bash
+tfpl fmt storage-account  # Searches in components, bases, and projects
+tfpl val k8s-argocd      # Automatically finds it in bases/
+tfpl init prod-infra     # Automatically finds it in projects/
+```
+
 ### Mutual Exclusivity
 
 The following combinations are not allowed:
 
-- Cannot specify more than one of `-c`, `-b`, `-p` at the same time
-- Cannot use `--path` together with `-c`, `-b`, or `-p`
+- Cannot use `--path` together with a module name argument
 
-Example errors:
+Example error:
 
 ```bash
-tfpl fmt -c storage -b k8s
-# Error: only one of --component/-c, --base/-b, or --project/-p can be specified at a time
-
-tfpl fmt -c storage --path iac/components/storage
-# Error: --path is mutually exclusive with --component/-c, --base/-b, and --project/-p
+tfpl fmt storage --path iac/components/storage
+# Error: --path is mutually exclusive with module name argument
 ```
 
 ## Development
