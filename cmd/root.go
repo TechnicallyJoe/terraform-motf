@@ -189,60 +189,6 @@ func resolveExplicitPath(path string) (string, error) {
 	return absPath, nil
 }
 
-// findModule finds a module by type and name
-func findModule(moduleType, moduleName string) (string, error) {
-	// Determine search path based on cfg.Root
-	var searchPath string
-	if cfg.Root != "" {
-		// cfg.Root can be an absolute path (git root) or relative path
-		if filepath.IsAbs(cfg.Root) {
-			searchPath = cfg.Root
-		} else {
-			wd, err := os.Getwd()
-			if err != nil {
-				return "", fmt.Errorf("failed to get working directory: %w", err)
-			}
-			searchPath = filepath.Join(wd, cfg.Root)
-		}
-	} else {
-		wd, err := os.Getwd()
-		if err != nil {
-			return "", fmt.Errorf("failed to get working directory: %w", err)
-		}
-		searchPath = wd
-	}
-	searchPath = filepath.Join(searchPath, moduleType)
-
-	// Check if search path exists
-	if _, err := os.Stat(searchPath); os.IsNotExist(err) {
-		return "", fmt.Errorf("%s directory does not exist: %s", moduleType, searchPath)
-	}
-
-	// Find the module
-	matches, err := finder.FindModule(searchPath, moduleName)
-	if err != nil {
-		return "", fmt.Errorf("failed to search for module: %w", err)
-	}
-
-	if len(matches) == 0 {
-		return "", fmt.Errorf("%s '%s' not found in %s", moduleType[:len(moduleType)-1], moduleName, searchPath)
-	}
-
-	if len(matches) > 1 {
-		// Name clash detected
-		moduleTypeSingular := moduleType[:len(moduleType)-1]
-		fmt.Fprintf(os.Stderr, "Error: multiple %ss named '%s' found - name clash detected:\n", moduleTypeSingular, moduleName)
-		for i, match := range matches {
-			fmt.Fprintf(os.Stderr, "  %d. %s\n", i+1, match)
-		}
-		fmt.Fprintln(os.Stderr)
-		fmt.Fprintln(os.Stderr, "Please use --path to specify the exact path")
-		return "", fmt.Errorf("name clash detected")
-	}
-
-	return matches[0], nil
-}
-
 // findModuleInAllDirs searches for a module across all three directories (components, bases, projects)
 func findModuleInAllDirs(moduleName string) (string, error) {
 	// Determine base search path based on cfg.Root
