@@ -3,6 +3,10 @@ terraform {
   required_version = ">= 1.0.0"
 }
 
+provider "azurerm" {
+  features {}
+}
+
 variable "name" {
   type        = string
   description = "The name of the storage account"
