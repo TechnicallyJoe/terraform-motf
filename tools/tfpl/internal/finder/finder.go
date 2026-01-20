@@ -3,6 +3,7 @@ package finder
 import (
 	"os"
 	"path/filepath"
+	"strings"
 )
 
 // FindModule recursively searches for directories matching moduleName in searchPath
@@ -46,7 +47,7 @@ func hasTerraformFiles(dir string) bool {
 			return true
 		}
 		// Check for .tf.json
-		if len(name) > 8 && name[len(name)-8:] == ".tf.json" {
+		if strings.HasSuffix(name, ".tf.json") {
 			return true
 		}
 	}
