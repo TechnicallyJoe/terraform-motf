@@ -85,3 +85,71 @@ func TestRunner_WithDefaultConfig(t *testing.T) {
 		t.Errorf("expected default Binary to be 'terraform', got '%s'", runner.Binary())
 	}
 }
+
+func TestBuildArgs(t *testing.T) {
+	tests := []struct {
+		name      string
+		command   string
+		extraArgs []string
+		expected  []string
+	}{
+		{
+			name:      "command only",
+			command:   "init",
+			extraArgs: []string{},
+			expected:  []string{"init"},
+		},
+		{
+			name:      "command with one arg",
+			command:   "init",
+			extraArgs: []string{"-upgrade"},
+			expected:  []string{"init", "-upgrade"},
+		},
+		{
+			name:      "command with multiple args",
+			command:   "init",
+			extraArgs: []string{"-upgrade", "-reconfigure"},
+			expected:  []string{"init", "-upgrade", "-reconfigure"},
+		},
+		{
+			name:      "fmt with check flag",
+			command:   "fmt",
+			extraArgs: []string{"-check"},
+			expected:  []string{"fmt", "-check"},
+		},
+		{
+			name:      "validate with json output",
+			command:   "validate",
+			extraArgs: []string{"-json"},
+			expected:  []string{"validate", "-json"},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			result := BuildArgs(tt.command, tt.extraArgs...)
+
+			if len(result) != len(tt.expected) {
+				t.Fatalf("expected %d args, got %d", len(tt.expected), len(result))
+			}
+
+			for i, arg := range result {
+				if arg != tt.expected[i] {
+					t.Errorf("arg[%d] = %s, expected %s", i, arg, tt.expected[i])
+				}
+			}
+		})
+	}
+}
+
+func TestBuildArgs_PreservesArgOrder(t *testing.T) {
+	args := BuildArgs("init", "-backend=false", "-upgrade", "-reconfigure")
+
+	expected := []string{"init", "-backend=false", "-upgrade", "-reconfigure"}
+	for i, arg := range args {
+		if arg != expected[i] {
+			t.Errorf("arg order not preserved: got %v, expected %v", args, expected)
+			break
+		}
+	}
+}

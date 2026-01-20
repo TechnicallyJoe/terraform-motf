@@ -23,6 +23,7 @@ var (
 	projectFlag   string
 	pathFlag      string
 	initFlag      bool
+	argsFlag      []string
 )
 
 // rootCmd represents the base command
@@ -38,7 +39,8 @@ in a polylith structure.`,
   tfpl val -b k8s-argocd           # Run validate on base k8s-argocd
   tfpl val -i -b k8s-argocd        # Run init then validate on base k8s-argocd
   tfpl init -b k8s-argocd          # Run init on base k8s-argocd
-  tfpl fmt --path iac/components/azurerm/storage-account  # Run fmt on explicit path`,
+  tfpl fmt --path iac/components/azurerm/storage-account  # Run fmt on explicit path
+  tfpl init -c storage-account -a -upgrade -a -reconfigure  # Run init with extra args`,
 	PersistentPreRunE: func(cmd *cobra.Command, args []string) error {
 		// Load configuration
 		wd, err := os.Getwd()
@@ -68,7 +70,7 @@ var initCmd = &cobra.Command{
 			return err
 		}
 
-		return runner.RunInit(targetPath)
+		return runner.RunInit(targetPath, argsFlag...)
 	},
 }
 
@@ -89,7 +91,7 @@ var fmtCmd = &cobra.Command{
 			}
 		}
 
-		return runner.RunFmt(targetPath)
+		return runner.RunFmt(targetPath, argsFlag...)
 	},
 }
 
@@ -111,7 +113,7 @@ var valCmd = &cobra.Command{
 			}
 		}
 
-		return runner.RunValidate(targetPath)
+		return runner.RunValidate(targetPath, argsFlag...)
 	},
 }
 
@@ -132,6 +134,7 @@ func init() {
 	rootCmd.PersistentFlags().StringVarP(&baseFlag, "base", "b", "", "Base name to operate on")
 	rootCmd.PersistentFlags().StringVarP(&projectFlag, "project", "p", "", "Project name to operate on")
 	rootCmd.PersistentFlags().StringVar(&pathFlag, "path", "", "Explicit path (mutually exclusive with -c, -b, -p)")
+	rootCmd.PersistentFlags().StringArrayVarP(&argsFlag, "args", "a", []string{}, "Extra arguments to pass to terraform/tofu (can be specified multiple times)")
 
 	// Add init flag for fmt and val commands
 	fmtCmd.Flags().BoolVarP(&initFlag, "init", "i", false, "Run init before the command")

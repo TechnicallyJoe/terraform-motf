@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 	"os/exec"
+	"strings"
 
 	"github.com/TechnicallyJoe/sturdy-parakeet/internal/config"
 )
@@ -24,37 +25,45 @@ func (r *Runner) Binary() string {
 }
 
 // RunInit executes terraform/tofu init in the specified directory
-func (r *Runner) RunInit(dir string) error {
-	cmd := exec.Command(r.config.Binary, "init")
+func (r *Runner) RunInit(dir string, extraArgs ...string) error {
+	args := append([]string{"init"}, extraArgs...)
+	cmd := exec.Command(r.config.Binary, args...)
 	cmd.Dir = dir
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
 	cmd.Stdin = os.Stdin
 
-	fmt.Printf("Running %s init in %s\n", r.config.Binary, dir)
+	fmt.Printf("Running %s %s in %s\n", r.config.Binary, strings.Join(args, " "), dir)
 	return cmd.Run()
 }
 
 // RunFmt executes terraform/tofu fmt in the specified directory
-func (r *Runner) RunFmt(dir string) error {
-	cmd := exec.Command(r.config.Binary, "fmt")
+func (r *Runner) RunFmt(dir string, extraArgs ...string) error {
+	args := append([]string{"fmt"}, extraArgs...)
+	cmd := exec.Command(r.config.Binary, args...)
 	cmd.Dir = dir
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
 	cmd.Stdin = os.Stdin
 
-	fmt.Printf("Running %s fmt in %s\n", r.config.Binary, dir)
+	fmt.Printf("Running %s %s in %s\n", r.config.Binary, strings.Join(args, " "), dir)
 	return cmd.Run()
 }
 
 // RunValidate executes terraform/tofu validate in the specified directory
-func (r *Runner) RunValidate(dir string) error {
-	cmd := exec.Command(r.config.Binary, "validate")
+func (r *Runner) RunValidate(dir string, extraArgs ...string) error {
+	args := append([]string{"validate"}, extraArgs...)
+	cmd := exec.Command(r.config.Binary, args...)
 	cmd.Dir = dir
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
 	cmd.Stdin = os.Stdin
 
-	fmt.Printf("Running %s validate in %s\n", r.config.Binary, dir)
+	fmt.Printf("Running %s %s in %s\n", r.config.Binary, strings.Join(args, " "), dir)
 	return cmd.Run()
+}
+
+// BuildArgs constructs the argument list for a command with extra arguments
+func BuildArgs(command string, extraArgs ...string) []string {
+	return append([]string{command}, extraArgs...)
 }

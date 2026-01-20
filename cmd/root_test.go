@@ -261,3 +261,60 @@ func TestFindModule_NameClash(t *testing.T) {
 		t.Error("expected error for name clash")
 	}
 }
+
+func TestArgsFlag_Empty(t *testing.T) {
+	// Reset argsFlag
+	argsFlag = []string{}
+
+	if len(argsFlag) != 0 {
+		t.Errorf("expected empty argsFlag, got %v", argsFlag)
+	}
+}
+
+func TestArgsFlag_SingleArg(t *testing.T) {
+	argsFlag = []string{"-upgrade"}
+
+	if len(argsFlag) != 1 {
+		t.Fatalf("expected 1 arg, got %d", len(argsFlag))
+	}
+
+	if argsFlag[0] != "-upgrade" {
+		t.Errorf("expected '-upgrade', got '%s'", argsFlag[0])
+	}
+
+	// Reset
+	argsFlag = []string{}
+}
+
+func TestArgsFlag_MultipleArgs(t *testing.T) {
+	argsFlag = []string{"-upgrade", "-reconfigure", "-backend=false"}
+
+	if len(argsFlag) != 3 {
+		t.Fatalf("expected 3 args, got %d", len(argsFlag))
+	}
+
+	expected := []string{"-upgrade", "-reconfigure", "-backend=false"}
+	for i, arg := range argsFlag {
+		if arg != expected[i] {
+			t.Errorf("arg[%d] = '%s', expected '%s'", i, arg, expected[i])
+		}
+	}
+
+	// Reset
+	argsFlag = []string{}
+}
+
+func TestArgsFlag_PreservesOrder(t *testing.T) {
+	argsFlag = []string{"-var=foo=bar", "-var=baz=qux", "-target=module.test"}
+
+	expected := []string{"-var=foo=bar", "-var=baz=qux", "-target=module.test"}
+	for i, arg := range argsFlag {
+		if arg != expected[i] {
+			t.Errorf("order not preserved: got %v, expected %v", argsFlag, expected)
+			break
+		}
+	}
+
+	// Reset
+	argsFlag = []string{}
+}
