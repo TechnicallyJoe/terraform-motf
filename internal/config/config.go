@@ -10,8 +10,9 @@ import (
 
 // Config represents the .tfpl.yml configuration file
 type Config struct {
-	Root   string `yaml:"root"`
-	Binary string `yaml:"binary"`
+	Root       string `yaml:"root"`
+	Binary     string `yaml:"binary"`
+	ConfigPath string `yaml:"-"` // Path to the config file, if found
 }
 
 // DefaultConfig returns a Config with default values
@@ -76,6 +77,9 @@ func Load(startDir string) (*Config, error) {
 			if cfg.Binary != "terraform" && cfg.Binary != "tofu" {
 				return nil, fmt.Errorf("invalid binary '%s' in config: must be 'terraform' or 'tofu'", cfg.Binary)
 			}
+
+			// Store the config file path
+			cfg.ConfigPath = configPath
 
 			// If Root is not set in config, default to git root
 			// If Root is set and is relative, resolve it relative to the config file directory

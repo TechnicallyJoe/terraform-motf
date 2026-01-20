@@ -283,6 +283,13 @@ func TestE2E_ConfigCommand(t *testing.T) {
 	if !strings.Contains(outputStr, "terraform") {
 		t.Error("config output should contain 'terraform'")
 	}
+	if !strings.Contains(outputStr, "Config:") {
+		t.Error("config output should contain 'Config:'")
+	}
+	// Demo directory has a .tfpl.yml file, so it should show the path
+	if !strings.Contains(outputStr, ".tfpl.yml") {
+		t.Error("config output should contain '.tfpl.yml' path")
+	}
 }
 
 func TestE2E_ArgsFlag(t *testing.T) {

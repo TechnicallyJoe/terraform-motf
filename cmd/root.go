@@ -125,6 +125,11 @@ var configCmd = &cobra.Command{
 		fmt.Println("Current configuration:")
 		fmt.Printf("  Root:   %s\n", cfg.Root)
 		fmt.Printf("  Binary: %s\n", cfg.Binary)
+		if cfg.ConfigPath != "" {
+			fmt.Printf("  Config: %s\n", cfg.ConfigPath)
+		} else {
+			fmt.Printf("  Config: (using defaults)\n")
+		}
 	},
 }
 
