@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"strings"
 
 	"github.com/TechnicallyJoe/sturdy-parakeet/tools/tfpl/internal/config"
 	"github.com/TechnicallyJoe/sturdy-parakeet/tools/tfpl/internal/finder"
@@ -233,11 +234,13 @@ func resolveTargetPath() (string, error) {
 	}
 
 	if len(matches) == 0 {
-		return "", fmt.Errorf("no %s named '%s' found in %s", moduleType[:len(moduleType)-1], moduleName, searchPath)
+		singularType := strings.TrimSuffix(moduleType, "s")
+		return "", fmt.Errorf("no %s named '%s' found in %s", singularType, moduleName, searchPath)
 	}
 
 	if len(matches) > 1 {
-		fmt.Fprintf(os.Stderr, "Error: multiple %s named '%s' found - name clash detected:\n", moduleType[:len(moduleType)-1], moduleName)
+		singularType := strings.TrimSuffix(moduleType, "s")
+		fmt.Fprintf(os.Stderr, "Error: multiple %s named '%s' found - name clash detected:\n", singularType, moduleName)
 		for i, match := range matches {
 			fmt.Fprintf(os.Stderr, "  %d. %s\n", i+1, match)
 		}
