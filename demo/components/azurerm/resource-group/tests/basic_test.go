@@ -5,7 +5,6 @@ import (
 	"testing"
 
 	"github.com/gruntwork-io/terratest/modules/terraform"
-	"github.com/stretchr/testify/assert"
 )
 
 func TestBasicExample(t *testing.T) {
@@ -26,7 +25,7 @@ func TestBasicExample(t *testing.T) {
 	// This will run `terraform init` and `terraform plan` and fail the test if there are any errors.
 	terraform.InitAndPlan(t, terraformOptions)
 
-	// Example output check (customize as needed)
-	output := terraform.Output(t, terraformOptions, "resource_group_name")
-	assert.NotEmpty(t, output)
+	// Example output check (customize as needed) - Only works if apply is run.
+	// output := terraform.Output(t, terraformOptions, "resource_group_name")
+	// assert.NotEmpty(t, output)
 }
