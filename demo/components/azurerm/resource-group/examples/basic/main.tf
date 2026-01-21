@@ -12,10 +12,15 @@ provider "azurerm" {
   features {}
 }
 
+module "naming" {
+  source  = "Azure/naming/azurerm"
+  version = "0.4.3"
+}
+
 module "resource_group" {
   source = "../../"
 
-  name     = "rg-demo-example"
+  name     = module.naming.resource_group_name
   location = "westeurope"
 
   tags = {
