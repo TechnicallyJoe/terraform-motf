@@ -11,6 +11,10 @@ var skipDirs = map[string]bool{
 	".terraform":   true,
 	".git":         true,
 	"node_modules": true,
+	"examples":     true,
+	"modules":      true,
+	"tests":        true,
+	".spacelift":   true,
 }
 
 // FindModule searches for a module with the given name in the specified search path
