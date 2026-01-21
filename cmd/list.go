@@ -121,16 +121,39 @@ func sortModules(modules []ModuleInfo) {
 	})
 }
 
-// printModules outputs the list of modules to stdout
+// printModules outputs the list of modules to stdout in table format
 func printModules(modules []ModuleInfo) {
-	fmt.Println("Found modules:")
+	// Calculate column widths
+	nameWidth := len("NAME")
+	typeWidth := len("TYPE")
+	pathWidth := len("PATH")
+	versionWidth := len("VERSION")
 
 	for _, mod := range modules {
-		versionStr := ""
-		if mod.Version != "" {
-			versionStr = fmt.Sprintf(" (v%s)", mod.Version)
+		if len(mod.Name) > nameWidth {
+			nameWidth = len(mod.Name)
 		}
-		fmt.Printf("  %-20s [%-9s]  %s%s\n", mod.Name, mod.Type, mod.Path, versionStr)
+		if len(mod.Type) > typeWidth {
+			typeWidth = len(mod.Type)
+		}
+		if len(mod.Path) > pathWidth {
+			pathWidth = len(mod.Path)
+		}
+		if len(mod.Version) > versionWidth {
+			versionWidth = len(mod.Version)
+		}
+	}
+
+	// Print header
+	fmt.Printf("%-*s  %-*s  %-*s  %s\n", nameWidth, "NAME", typeWidth, "TYPE", pathWidth, "PATH", "VERSION")
+
+	// Print modules
+	for _, mod := range modules {
+		version := mod.Version
+		if version == "" {
+			version = "-"
+		}
+		fmt.Printf("%-*s  %-*s  %-*s  %s\n", nameWidth, mod.Name, typeWidth, mod.Type, pathWidth, mod.Path, version)
 	}
 }
 
