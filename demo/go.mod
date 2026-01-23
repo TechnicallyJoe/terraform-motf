@@ -2,7 +2,7 @@ module github.com/TechnicallyJoe/sturdy-parakeet/demo
 
 go 1.25
 
-require github.com/stretchr/testify v1.11.1 // indirect
+require github.com/stretchr/testify v1.11.1
 
 require github.com/gruntwork-io/terratest v0.48.2
 
