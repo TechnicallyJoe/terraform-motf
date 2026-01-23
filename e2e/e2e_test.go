@@ -71,16 +71,16 @@ func cleanupTerraformFiles(t *testing.T) {
 	demoPath := getDemoPath(t)
 
 	// Walk through demo and remove .terraform directories and lock files
-	filepath.Walk(demoPath, func(path string, info os.FileInfo, err error) error {
+	_ = filepath.Walk(demoPath, func(path string, info os.FileInfo, err error) error {
 		if err != nil {
 			return nil
 		}
 		if info.IsDir() && info.Name() == ".terraform" {
-			os.RemoveAll(path)
+			_ = os.RemoveAll(path)
 			return filepath.SkipDir
 		}
 		if info.Name() == ".terraform.lock.hcl" {
-			os.Remove(path)
+			_ = os.Remove(path)
 		}
 		return nil
 	})

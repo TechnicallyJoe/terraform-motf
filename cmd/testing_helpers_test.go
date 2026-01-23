@@ -45,7 +45,7 @@ func withWorkingDir(t *testing.T, dir string) {
 	}
 
 	t.Cleanup(func() {
-		os.Chdir(originalWd)
+		_ = os.Chdir(originalWd)
 	})
 }
 

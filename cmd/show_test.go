@@ -294,7 +294,7 @@ func TestGetModuleDetails_Basic(t *testing.T) {
 	if err := os.Chdir(tmpDir); err != nil {
 		t.Fatalf("failed to change directory: %v", err)
 	}
-	defer os.Chdir(originalWd)
+	defer func() { _ = os.Chdir(originalWd) }()
 
 	details, err := getModuleDetails(modulePath)
 	if err != nil {
@@ -389,7 +389,7 @@ func TestGetModuleDetails_WithAllFeatures(t *testing.T) {
 	if err := os.Chdir(tmpDir); err != nil {
 		t.Fatalf("failed to change directory: %v", err)
 	}
-	defer os.Chdir(originalWd)
+	defer func() { _ = os.Chdir(originalWd) }()
 
 	details, err := getModuleDetails(modulePath)
 	if err != nil {
@@ -436,7 +436,7 @@ func TestGetModuleDetails_BaseType(t *testing.T) {
 	if err := os.Chdir(tmpDir); err != nil {
 		t.Fatalf("failed to change directory: %v", err)
 	}
-	defer os.Chdir(originalWd)
+	defer func() { _ = os.Chdir(originalWd) }()
 
 	details, err := getModuleDetails(modulePath)
 	if err != nil {
@@ -465,7 +465,7 @@ func TestGetModuleDetails_ProjectType(t *testing.T) {
 	if err := os.Chdir(tmpDir); err != nil {
 		t.Fatalf("failed to change directory: %v", err)
 	}
-	defer os.Chdir(originalWd)
+	defer func() { _ = os.Chdir(originalWd) }()
 
 	details, err := getModuleDetails(modulePath)
 	if err != nil {
@@ -503,7 +503,7 @@ func TestGetModuleDetails_EmptyDirectories(t *testing.T) {
 	if err := os.Chdir(tmpDir); err != nil {
 		t.Fatalf("failed to change directory: %v", err)
 	}
-	defer os.Chdir(originalWd)
+	defer func() { _ = os.Chdir(originalWd) }()
 
 	details, err := getModuleDetails(modulePath)
 	if err != nil {
@@ -558,7 +558,7 @@ func TestShowCommand_Integration(t *testing.T) {
 	if err := os.Chdir(tmpDir); err != nil {
 		t.Fatalf("failed to change directory: %v", err)
 	}
-	defer os.Chdir(originalWd)
+	defer func() { _ = os.Chdir(originalWd) }()
 
 	// Test that we can find and get details for the module
 	foundPath, err := findModuleInAllDirs("resource-group")
@@ -608,7 +608,7 @@ func TestGetModuleDetails_NoSubdirectories(t *testing.T) {
 	if err := os.Chdir(tmpDir); err != nil {
 		t.Fatalf("failed to change directory: %v", err)
 	}
-	defer os.Chdir(originalWd)
+	defer func() { _ = os.Chdir(originalWd) }()
 
 	details, err := getModuleDetails(modulePath)
 	if err != nil {
@@ -660,7 +660,7 @@ func TestGetModuleDetails_EmptySubdirectories(t *testing.T) {
 	if err := os.Chdir(tmpDir); err != nil {
 		t.Fatalf("failed to change directory: %v", err)
 	}
-	defer os.Chdir(originalWd)
+	defer func() { _ = os.Chdir(originalWd) }()
 
 	details, err := getModuleDetails(modulePath)
 	if err != nil {
@@ -722,7 +722,7 @@ func TestGetModuleDetails_UnknownModuleType(t *testing.T) {
 	if err := os.Chdir(tmpDir); err != nil {
 		t.Fatalf("failed to change directory: %v", err)
 	}
-	defer os.Chdir(originalWd)
+	defer func() { _ = os.Chdir(originalWd) }()
 
 	details, err := getModuleDetails(modulePath)
 	if err != nil {
