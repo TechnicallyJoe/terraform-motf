@@ -617,3 +617,97 @@ func TestE2E_PlanWithInitFlag(t *testing.T) {
 		t.Errorf("expected 'plan' in output, got: %s", outputStr)
 	}
 }
+
+// TestE2E_TaskList tests listing tasks
+func TestE2E_TaskList(t *testing.T) {
+	tfplBinary := buildTfpl(t)
+	tmpDir := t.TempDir()
+
+	// Create minimal polylith structure
+	componentDir := filepath.Join(tmpDir, "components", "test-component")
+	if err := os.MkdirAll(componentDir, 0755); err != nil {
+		t.Fatalf("failed to create component dir: %v", err)
+	}
+	if err := os.WriteFile(filepath.Join(componentDir, "main.tf"), []byte("terraform {}\n"), 0644); err != nil {
+		t.Fatalf("failed to write tf file: %v", err)
+	}
+
+	// Create .tfpl.yml with tasks
+	configContent := `binary: terraform
+tasks:
+  hello:
+    description: "Says hello"
+    command: "echo hello"
+  lint:
+    description: "Run linting"
+    shell: sh
+    command: "echo linting"
+`
+	if err := os.WriteFile(filepath.Join(tmpDir, ".tfpl.yml"), []byte(configContent), 0644); err != nil {
+		t.Fatalf("failed to write config: %v", err)
+	}
+
+	// Run task list
+	cmd := exec.Command(tfplBinary, "task", "test-component")
+	cmd.Dir = tmpDir
+	output, err := cmd.CombinedOutput()
+	if err != nil {
+		t.Fatalf("tfpl task list failed: %v\nOutput: %s", err, output)
+	}
+
+	outputStr := string(output)
+	if !strings.Contains(outputStr, "hello") {
+		t.Errorf("expected 'hello' in output, got: %s", outputStr)
+	}
+	if !strings.Contains(outputStr, "lint") {
+		t.Errorf("expected 'lint' in output, got: %s", outputStr)
+	}
+	if !strings.Contains(outputStr, "Says hello") {
+		t.Errorf("expected description in output, got: %s", outputStr)
+	}
+}
+
+// TestE2E_TaskRun tests running a task
+func TestE2E_TaskRun(t *testing.T) {
+	tfplBinary := buildTfpl(t)
+	tmpDir := t.TempDir()
+
+	// Create minimal polylith structure
+	componentDir := filepath.Join(tmpDir, "components", "test-component")
+	if err := os.MkdirAll(componentDir, 0755); err != nil {
+		t.Fatalf("failed to create component dir: %v", err)
+	}
+	if err := os.WriteFile(filepath.Join(componentDir, "main.tf"), []byte("terraform {}\n"), 0644); err != nil {
+		t.Fatalf("failed to write tf file: %v", err)
+	}
+
+	// Create .tfpl.yml with a task
+	configContent := `binary: terraform
+tasks:
+  greet:
+    description: "Greeting task"
+    shell: sh
+    command: |
+      echo "Hello from task"
+      echo "Working dir: $(pwd)"
+`
+	if err := os.WriteFile(filepath.Join(tmpDir, ".tfpl.yml"), []byte(configContent), 0644); err != nil {
+		t.Fatalf("failed to write config: %v", err)
+	}
+
+	// Run the task
+	cmd := exec.Command(tfplBinary, "task", "test-component", "-t", "greet")
+	cmd.Dir = tmpDir
+	output, err := cmd.CombinedOutput()
+	if err != nil {
+		t.Fatalf("tfpl task run failed: %v\nOutput: %s", err, output)
+	}
+
+	outputStr := string(output)
+	if !strings.Contains(outputStr, "Hello from task") {
+		t.Errorf("expected 'Hello from task' in output, got: %s", outputStr)
+	}
+	if !strings.Contains(outputStr, "test-component") {
+		t.Errorf("expected working dir to contain 'test-component', got: %s", outputStr)
+	}
+}

@@ -5,6 +5,7 @@ import (
 	"os"
 	"path/filepath"
 
+	"github.com/TechnicallyJoe/sturdy-parakeet/internal/tasks"
 	"gopkg.in/yaml.v3"
 )
 
@@ -16,10 +17,11 @@ type TestConfig struct {
 
 // Config represents the .tfpl.yml configuration file
 type Config struct {
-	Root       string      `yaml:"root"`
-	Binary     string      `yaml:"binary"`
-	Test       *TestConfig `yaml:"test"`
-	ConfigPath string      `yaml:"-"` // Path to the config file, if found
+	Root       string                       `yaml:"root"`
+	Binary     string                       `yaml:"binary"`
+	Test       *TestConfig                  `yaml:"test"`
+	Tasks      map[string]*tasks.TaskConfig `yaml:"tasks"`
+	ConfigPath string                       `yaml:"-"` // Path to the config file, if found
 }
 
 // DefaultConfig returns a Config with default values

@@ -7,3 +7,21 @@ binary: terraform
 test:
   engine: "terratest"  # Options: terratest, terraform, tofu
   args: ""             # Additional arguments passed to the test command
+
+# Custom tasks
+tasks:
+  hello-world:
+    description: "Writes hello world to the console"
+    shell: sh
+    command: |
+      echo "Hello"
+      echo "World"
+
+  list-files:
+    description: "List files in the module directory"
+    command: "ls -la"
+
+  show-path:
+    description: "Show current working directory"
+    shell: bash
+    command: "pwd && echo 'Module: '$(basename $(pwd))"
