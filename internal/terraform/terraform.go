@@ -63,6 +63,19 @@ func (r *Runner) RunValidate(dir string, extraArgs ...string) error {
 	return cmd.Run()
 }
 
+// RunPlan executes terraform/tofu plan in the specified directory
+func (r *Runner) RunPlan(dir string, extraArgs ...string) error {
+	args := append([]string{"plan"}, extraArgs...)
+	cmd := exec.Command(r.config.Binary, args...)
+	cmd.Dir = dir
+	cmd.Stdout = os.Stdout
+	cmd.Stderr = os.Stderr
+	cmd.Stdin = os.Stdin
+
+	fmt.Printf("Running %s %s in %s\n", r.config.Binary, strings.Join(args, " "), dir)
+	return cmd.Run()
+}
+
 // RunTest executes tests based on the configured test engine
 func (r *Runner) RunTest(dir string, extraArgs ...string) error {
 	var cmd *exec.Cmd

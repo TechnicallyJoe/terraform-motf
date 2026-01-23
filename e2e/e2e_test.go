@@ -557,3 +557,64 @@ func TestE2E_TofuInit(t *testing.T) {
 		t.Errorf("expected 'Initializing' in output, got: %s", outputStr)
 	}
 }
+
+// TestE2E_PlanNamingComponent tests plan on the naming component which has no cloud dependencies
+func TestE2E_PlanNamingComponent(t *testing.T) {
+	skipIfNoTerraform(t)
+	t.Cleanup(func() { cleanupTerraformFiles(t) })
+
+	tfplBinary := buildTfpl(t)
+	demoPath := getDemoPath(t)
+
+	// First init the naming component
+	initCmd := exec.Command(tfplBinary, "init", "naming")
+	initCmd.Dir = demoPath
+	initOutput, err := initCmd.CombinedOutput()
+	if err != nil {
+		t.Fatalf("tfpl init failed: %v\nOutput: %s", err, initOutput)
+	}
+
+	// Run plan on naming component
+	cmd := exec.Command(tfplBinary, "plan", "naming")
+	cmd.Dir = demoPath
+	output, err := cmd.CombinedOutput()
+	if err != nil {
+		t.Fatalf("tfpl plan failed: %v\nOutput: %s", err, output)
+	}
+
+	outputStr := string(output)
+	if !strings.Contains(outputStr, "plan") {
+		t.Errorf("expected 'plan' in output, got: %s", outputStr)
+	}
+	if !strings.Contains(outputStr, "naming") {
+		t.Errorf("expected 'naming' in output, got: %s", outputStr)
+	}
+}
+
+// TestE2E_PlanWithInitFlag tests plan with -i flag to run init first
+func TestE2E_PlanWithInitFlag(t *testing.T) {
+	skipIfNoTerraform(t)
+	t.Cleanup(func() { cleanupTerraformFiles(t) })
+
+	tfplBinary := buildTfpl(t)
+	demoPath := getDemoPath(t)
+
+	// Run plan with -i flag (should init first then plan)
+	cmd := exec.Command(tfplBinary, "plan", "-i", "naming")
+	cmd.Dir = demoPath
+	output, err := cmd.CombinedOutput()
+	if err != nil {
+		t.Fatalf("tfpl plan -i failed: %v\nOutput: %s", err, output)
+	}
+
+	outputStr := string(output)
+	// Should contain init output
+	if !strings.Contains(outputStr, "Initializing") {
+		t.Errorf("expected 'Initializing' in output (from init), got: %s", outputStr)
+	}
+	// Should contain plan output
+	if !strings.Contains(outputStr, "plan") {
+		t.Errorf("expected 'plan' in output, got: %s", outputStr)
+	}
+}
+
