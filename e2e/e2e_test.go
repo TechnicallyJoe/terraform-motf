@@ -260,13 +260,13 @@ func TestE2E_TestComponent(t *testing.T) {
 
 	outputStr := string(output)
 
-	// The test command should find the module and attempt to run go test
-	if !strings.Contains(outputStr, "naming") {
-		t.Errorf("expected output to mention 'naming', got: %s", outputStr)
+	// The test command should find the specific naming component module and attempt to run go test
+	if !strings.Contains(outputStr, "components/azurerm/naming") {
+		t.Errorf("expected output to mention 'components/azurerm/naming', got: %s", outputStr)
 	}
 
 	// Should show it's running go test
-	if !strings.Contains(outputStr, "go test") && !strings.Contains(outputStr, "Running go") {
+	if !strings.Contains(outputStr, "go test") {
 		t.Errorf("expected output to show 'go test' command, got: %s", outputStr)
 	}
 
@@ -281,9 +281,9 @@ func TestE2E_TestComponent(t *testing.T) {
 		t.Fatalf("tfpl test failed unexpectedly: %v\nOutput: %s", err, outputStr)
 	}
 
-	// If test passed, verify we see test output
+	// If test passed, verify we see successful go test output
 	if !strings.Contains(outputStr, "PASS") && !strings.Contains(outputStr, "ok") {
-		t.Logf("test output (may have passed): %s", outputStr)
+		t.Errorf("expected successful go test output to contain 'PASS' or 'ok', got: %s", outputStr)
 	}
 }
 
