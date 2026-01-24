@@ -65,12 +65,12 @@ func buildTfpl(t *testing.T) string {
 	return binaryPath
 }
 
-// cleanupTerraformFiles removes .terraform directories and lock files from demo
+// cleanupTerraformFiles removes .terraform directories, lock files, and state files from demo
 func cleanupTerraformFiles(t *testing.T) {
 	t.Helper()
 	demoPath := getDemoPath(t)
 
-	// Walk through demo and remove .terraform directories and lock files
+	// Walk through demo and remove .terraform directories, lock files, and state files
 	_ = filepath.Walk(demoPath, func(path string, info os.FileInfo, err error) error {
 		if err != nil {
 			return nil
@@ -79,7 +79,9 @@ func cleanupTerraformFiles(t *testing.T) {
 			_ = os.RemoveAll(path)
 			return filepath.SkipDir
 		}
-		if info.Name() == ".terraform.lock.hcl" {
+		if info.Name() == ".terraform.lock.hcl" ||
+			info.Name() == "terraform.tfstate" ||
+			info.Name() == "terraform.tfstate.backup" {
 			_ = os.Remove(path)
 		}
 		return nil
@@ -240,6 +242,48 @@ func TestE2E_ValidateBase(t *testing.T) {
 
 	if !strings.Contains(string(output), "k8s-argocd") {
 		t.Errorf("expected output to mention k8s-argocd, got: %s", output)
+	}
+}
+
+func TestE2E_TestComponent(t *testing.T) {
+	skipIfNoTerraform(t)
+	t.Cleanup(func() { cleanupTerraformFiles(t) })
+
+	tfplBinary := buildTfpl(t)
+	demoPath := getDemoPath(t)
+
+	// Run test on naming component which uses Azure/naming/azurerm (no real infrastructure)
+	// The terratest will run terraform init, apply, and destroy on the example
+	cmd := exec.Command(tfplBinary, "test", "naming")
+	cmd.Dir = demoPath
+	output, err := cmd.CombinedOutput()
+
+	outputStr := string(output)
+
+	// The test command should find the specific naming component module and attempt to run go test
+	if !strings.Contains(outputStr, "components/azurerm/naming") {
+		t.Errorf("expected output to mention 'components/azurerm/naming', got: %s", outputStr)
+	}
+
+	// Should show it's running go test
+	if !strings.Contains(outputStr, "go test") {
+		t.Errorf("expected output to contain 'go test', got: %s", outputStr)
+	}
+
+	// If there was an error, log it but check if it's an expected failure (e.g., missing terratest deps in CI)
+	if err != nil {
+		// Accept if the test ran but failed due to missing dependencies
+		if strings.Contains(outputStr, "cannot find package") ||
+			strings.Contains(outputStr, "no required module provides") {
+			t.Logf("test command ran but terratest dependencies not available (expected in CI): %s", outputStr)
+			return
+		}
+		t.Fatalf("tfpl test failed unexpectedly: %v\nOutput: %s", err, outputStr)
+	}
+
+	// If test passed, verify we see successful go test output
+	if !strings.Contains(outputStr, "PASS") && !strings.Contains(outputStr, "ok") {
+		t.Errorf("expected successful go test output to contain 'PASS' or 'ok', got: %s", outputStr)
 	}
 }
 
