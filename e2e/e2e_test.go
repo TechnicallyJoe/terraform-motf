@@ -267,7 +267,7 @@ func TestE2E_TestComponent(t *testing.T) {
 
 	// Should show it's running go test
 	if !strings.Contains(outputStr, "go test") {
-		t.Errorf("expected output to show 'go test' command, got: %s", outputStr)
+		t.Errorf("expected output to contain 'go test', got: %s", outputStr)
 	}
 
 	// If there was an error, log it but check if it's an expected failure (e.g., missing terratest deps in CI)
