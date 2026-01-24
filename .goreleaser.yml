@@ -72,7 +72,7 @@ release:
   mode: replace
   header: |
     ## tfpl {{ .Version }}
-    
+
     To install, download the appropriate binary for your platform below.
   footer: |
     **Full Changelog**: https://github.com/TechnicallyJoe/tfpl/compare/{{ .PreviousTag }}...{{ .Tag }}
