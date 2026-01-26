@@ -17,7 +17,7 @@ var configCmd = &cobra.Command{
 		if cfg.ConfigPath != "" {
 			fmt.Printf("  Config: %s\n", cfg.ConfigPath)
 		} else {
-			fmt.Printf("  Config: (using defaults)\n")
+			fmt.Printf("  Config: none (using defaults)\n")
 		}
 		fmt.Println("\nTest configuration:")
 		fmt.Printf("  Engine: %s\n", cfg.Test.Engine)
