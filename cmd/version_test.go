@@ -21,8 +21,8 @@ func TestVersionCmd_Output(t *testing.T) {
 	output := buf.String()
 
 	// Should contain version info
-	if !strings.Contains(output, "tfpl version") {
-		t.Errorf("expected output to contain 'tfpl version', got: %s", output)
+	if !strings.Contains(output, "motf version") {
+		t.Errorf("expected output to contain 'motf version', got: %s", output)
 	}
 
 	// Should contain commit info
@@ -66,9 +66,9 @@ func TestVersionTemplate_Format(t *testing.T) {
 		t.Errorf("expected 3 lines in version template, got %d: %v", len(lines), lines)
 	}
 
-	// First line should start with "tfpl version"
-	if !strings.HasPrefix(lines[0], "tfpl version") {
-		t.Errorf("first line should start with 'tfpl version', got: %s", lines[0])
+	// First line should start with "motf version"
+	if !strings.HasPrefix(lines[0], "motf version") {
+		t.Errorf("first line should start with 'motf version', got: %s", lines[0])
 	}
 
 	// Second line should start with "commit:"

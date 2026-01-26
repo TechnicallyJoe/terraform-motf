@@ -13,9 +13,9 @@ var fmtCmd = &cobra.Command{
 Use the --example/-e flag to run fmt on a specific example instead of the module itself.
 
 Examples:
-  tfpl fmt storage-account              # Run fmt on storage-account module
-  tfpl fmt storage-account -e basic     # Run fmt on the 'basic' example
-  tfpl fmt -i storage-account -e basic  # Run init then fmt on the 'basic' example`,
+  motf fmt storage-account              # Run fmt on storage-account module
+  motf fmt storage-account -e basic     # Run fmt on the 'basic' example
+  motf fmt -i storage-account -e basic  # Run init then fmt on the 'basic' example`,
 	Args: cobra.MaximumNArgs(1),
 	RunE: func(cmd *cobra.Command, args []string) error {
 		targetPath, err := resolveTargetWithExample(args, exampleFlag)

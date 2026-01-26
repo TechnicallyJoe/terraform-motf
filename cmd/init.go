@@ -13,8 +13,8 @@ var initCmd = &cobra.Command{
 Use the --example/-e flag to run init on a specific example instead of the module itself.
 
 Examples:
-  tfpl init storage-account              # Run init on storage-account module
-  tfpl init storage-account -e basic     # Run init on the 'basic' example`,
+  motf init storage-account              # Run init on storage-account module
+  motf init storage-account -e basic     # Run init on the 'basic' example`,
 	Args: cobra.MaximumNArgs(1),
 	RunE: func(cmd *cobra.Command, args []string) error {
 		targetPath, err := resolveTargetWithExample(args, exampleFlag)

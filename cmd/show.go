@@ -7,8 +7,8 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/TechnicallyJoe/tfpl/internal/finder"
-	"github.com/TechnicallyJoe/tfpl/internal/spacelift"
+	"github.com/TechnicallyJoe/terraform-motf/internal/finder"
+	"github.com/TechnicallyJoe/terraform-motf/internal/spacelift"
 	"github.com/spf13/cobra"
 )
 
@@ -25,9 +25,9 @@ whether it has submodules, tests, examples, and its Spacelift registry version.
 Use the --json flag to output in JSON format for scripting.
 
 Examples:
-  tfpl show storage-account      # Show details for storage-account
-  tfpl show --path ./my-module   # Show details for module at explicit path
-  tfpl show storage-account --json  # Output as JSON`,
+  motf show storage-account      # Show details for storage-account
+  motf show --path ./my-module   # Show details for module at explicit path
+  motf show storage-account --json  # Output as JSON`,
 	Args: cobra.MaximumNArgs(1),
 	RunE: runShow,
 }

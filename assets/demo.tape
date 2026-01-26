@@ -57,7 +57,7 @@
 
 Output ../assets/demo.gif
 
-Require tfpl
+Require motf
 
 Set Theme "Catppuccin Mocha"
 Set FontSize 14
@@ -66,9 +66,9 @@ Set Height 600
 Set TypingSpeed 65ms
 
 Sleep 1s
-Type "tfpl list" Enter Sleep 3500ms
-Type "tfpl fmt prod-infra" Enter Sleep 2500ms
-Type "tfpl val -i prod-infra" Enter Sleep 4000ms
-Type "tfpl plan prod-infra" Enter Sleep 4000ms
+Type "motf list" Enter Sleep 3500ms
+Type "motf fmt prod-infra" Enter Sleep 2500ms
+Type "motf val -i prod-infra" Enter Sleep 4000ms
+Type "motf plan prod-infra" Enter Sleep 4000ms
 
-Type "tfpl task prod-infra -t hello-world" Enter Sleep 10s
+Type "motf task prod-infra -t hello-world" Enter Sleep 10s

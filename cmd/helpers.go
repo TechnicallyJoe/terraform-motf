@@ -6,7 +6,7 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/TechnicallyJoe/tfpl/internal/finder"
+	"github.com/TechnicallyJoe/terraform-motf/internal/finder"
 )
 
 // getBasePath returns the base path for module discovery based on cfg.Root

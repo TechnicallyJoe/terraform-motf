@@ -3,7 +3,7 @@ package main
 import (
 	"os"
 
-	"github.com/TechnicallyJoe/tfpl/cmd"
+	"github.com/TechnicallyJoe/terraform-motf/cmd"
 )
 
 func main() {

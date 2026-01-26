@@ -5,7 +5,7 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/TechnicallyJoe/tfpl/internal/tasks"
+	"github.com/TechnicallyJoe/terraform-motf/internal/tasks"
 	"gopkg.in/yaml.v3"
 )
 
@@ -15,7 +15,7 @@ type TestConfig struct {
 	Args   string `yaml:"args"`
 }
 
-// Config represents the .tfpl.yml configuration file
+// Config represents the .motf.yml configuration file
 type Config struct {
 	Root       string                       `yaml:"root"`
 	Binary     string                       `yaml:"binary"`
@@ -63,7 +63,7 @@ func findGitRoot(startDir string) string {
 	}
 }
 
-// Load searches for .tfpl.yml starting from startDir and walking up the directory tree
+// Load searches for .motf.yml starting from startDir and walking up the directory tree
 // until it reaches the Git repository root
 func Load(startDir string) (*Config, error) {
 	cfg := DefaultConfig()
@@ -71,10 +71,10 @@ func Load(startDir string) (*Config, error) {
 	// Find the git root first - this will be our default Root value
 	gitRoot := findGitRoot(startDir)
 
-	// Walk up the directory tree looking for .tfpl.yml
+	// Walk up the directory tree looking for .motf.yml
 	dir := startDir
 	for {
-		configPath := filepath.Join(dir, ".tfpl.yml")
+		configPath := filepath.Join(dir, ".motf.yml")
 		if _, err := os.Stat(configPath); err == nil {
 			// Found config file
 			data, err := os.ReadFile(configPath) //nolint:gosec // configPath is constructed from known directory traversal

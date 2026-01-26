@@ -16,11 +16,11 @@ func TestLoad_WithConfigFileAndRootSet(t *testing.T) {
 		t.Fatalf("failed to create .git directory: %v", err)
 	}
 
-	// Create .tfpl.yml with Root set
+	// Create .motf.yml with Root set
 	configContent := `root: /custom/root/path
 binary: tofu
 `
-	configPath := filepath.Join(tmpDir, ".tfpl.yml")
+	configPath := filepath.Join(tmpDir, ".motf.yml")
 	if err := os.WriteFile(configPath, []byte(configContent), 0644); err != nil {
 		t.Fatalf("failed to create config file: %v", err)
 	}
@@ -48,10 +48,10 @@ func TestLoad_WithConfigFileWithoutRoot(t *testing.T) {
 		t.Fatalf("failed to create .git directory: %v", err)
 	}
 
-	// Create .tfpl.yml without Root set
+	// Create .motf.yml without Root set
 	configContent := `binary: tofu
 `
-	configPath := filepath.Join(tmpDir, ".tfpl.yml")
+	configPath := filepath.Join(tmpDir, ".motf.yml")
 	if err := os.WriteFile(configPath, []byte(configContent), 0644); err != nil {
 		t.Fatalf("failed to create config file: %v", err)
 	}
@@ -99,7 +99,7 @@ func TestLoad_StopsAtGitRoot(t *testing.T) {
 	// Create a temp directory structure:
 	// tmpDir/
 	//   .git/
-	//   .tfpl.yml (with custom root)
+	//   .motf.yml (with custom root)
 	//   subdir/
 	//     nested/
 	tmpDir := t.TempDir()
@@ -110,10 +110,10 @@ func TestLoad_StopsAtGitRoot(t *testing.T) {
 		t.Fatalf("failed to create .git directory: %v", err)
 	}
 
-	// Create .tfpl.yml at repo root
+	// Create .motf.yml at repo root
 	configContent := `binary: tofu
 `
-	configPath := filepath.Join(tmpDir, ".tfpl.yml")
+	configPath := filepath.Join(tmpDir, ".motf.yml")
 	if err := os.WriteFile(configPath, []byte(configContent), 0644); err != nil {
 		t.Fatalf("failed to create config file: %v", err)
 	}
@@ -141,17 +141,17 @@ func TestLoad_StopsAtGitRoot(t *testing.T) {
 func TestLoad_DoesNotSearchBeyondGitRoot(t *testing.T) {
 	// Create a temp directory structure:
 	// tmpDir/
-	//   .tfpl.yml (should NOT be found)
+	//   .motf.yml (should NOT be found)
 	//   repo/
 	//     .git/
 	//     subdir/
 	tmpDir := t.TempDir()
 
-	// Create .tfpl.yml OUTSIDE the git repo (should not be found)
+	// Create .motf.yml OUTSIDE the git repo (should not be found)
 	outsideConfig := `binary: tofu
 root: /outside/root
 `
-	outsideConfigPath := filepath.Join(tmpDir, ".tfpl.yml")
+	outsideConfigPath := filepath.Join(tmpDir, ".motf.yml")
 	if err := os.WriteFile(outsideConfigPath, []byte(outsideConfig), 0644); err != nil {
 		t.Fatalf("failed to create outside config file: %v", err)
 	}
@@ -189,7 +189,7 @@ func TestLoad_ConfigInSubdirectory(t *testing.T) {
 	// tmpDir/
 	//   .git/
 	//   subdir/
-	//     .tfpl.yml
+	//     .motf.yml
 	//     nested/
 	tmpDir := t.TempDir()
 
@@ -207,7 +207,7 @@ func TestLoad_ConfigInSubdirectory(t *testing.T) {
 
 	configContent := `binary: tofu
 `
-	configPath := filepath.Join(subDir, ".tfpl.yml")
+	configPath := filepath.Join(subDir, ".motf.yml")
 	if err := os.WriteFile(configPath, []byte(configContent), 0644); err != nil {
 		t.Fatalf("failed to create config file: %v", err)
 	}
@@ -309,10 +309,10 @@ func TestLoad_InvalidBinary(t *testing.T) {
 		t.Fatalf("failed to create .git directory: %v", err)
 	}
 
-	// Create .tfpl.yml with invalid binary
+	// Create .motf.yml with invalid binary
 	configContent := `binary: invalid
 `
-	configPath := filepath.Join(tmpDir, ".tfpl.yml")
+	configPath := filepath.Join(tmpDir, ".motf.yml")
 	if err := os.WriteFile(configPath, []byte(configContent), 0644); err != nil {
 		t.Fatalf("failed to create config file: %v", err)
 	}
@@ -358,13 +358,13 @@ func TestLoad_TestConfigFromFile(t *testing.T) {
 		t.Fatalf("failed to create .git directory: %v", err)
 	}
 
-	// Create .tfpl.yml with test config
+	// Create .motf.yml with test config
 	configContent := `binary: terraform
 test:
   engine: terraform
   args: -verbose
 `
-	configPath := filepath.Join(tmpDir, ".tfpl.yml")
+	configPath := filepath.Join(tmpDir, ".motf.yml")
 	if err := os.WriteFile(configPath, []byte(configContent), 0644); err != nil {
 		t.Fatalf("failed to create config file: %v", err)
 	}
@@ -394,12 +394,12 @@ func TestLoad_TestConfigPartialFromFile(t *testing.T) {
 		t.Fatalf("failed to create .git directory: %v", err)
 	}
 
-	// Create .tfpl.yml with partial test config (only args)
+	// Create .motf.yml with partial test config (only args)
 	configContent := `binary: terraform
 test:
   args: -v -timeout=30m
 `
-	configPath := filepath.Join(tmpDir, ".tfpl.yml")
+	configPath := filepath.Join(tmpDir, ".motf.yml")
 	if err := os.WriteFile(configPath, []byte(configContent), 0644); err != nil {
 		t.Fatalf("failed to create config file: %v", err)
 	}

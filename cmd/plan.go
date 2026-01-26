@@ -13,10 +13,10 @@ var planCmd = &cobra.Command{
 Use the --example/-e flag to run plan on a specific example instead of the module itself.
 
 Examples:
-  tfpl plan storage-account              # Run plan on storage-account module
-  tfpl plan storage-account -e basic     # Run plan on the 'basic' example
-  tfpl plan storage-account --example basic
-  tfpl plan -i storage-account           # Run init then plan`,
+  motf plan storage-account              # Run plan on storage-account module
+  motf plan storage-account -e basic     # Run plan on the 'basic' example
+  motf plan storage-account --example basic
+  motf plan -i storage-account           # Run init then plan`,
 	Args: cobra.MaximumNArgs(1),
 	RunE: func(cmd *cobra.Command, args []string) error {
 		targetPath, err := resolveTargetWithExample(args, exampleFlag)

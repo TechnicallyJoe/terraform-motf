@@ -6,7 +6,7 @@ This directory contains a demo polylith-style Terraform repository structure for
 
 ```
 demo/
-├── .tfpl.yml              # tfpl configuration
+├── .motf.yml              # motf configuration
 ├── components/            # Reusable terraform components
 │   └── azurerm/
 │       ├── storage-account/
@@ -19,25 +19,25 @@ demo/
 
 ## Usage
 
-From the `demo` directory, you can run tfpl commands:
+From the `demo` directory, you can run motf commands:
 
 ```bash
 cd demo
 
 # Format a component
-tfpl fmt -c storage-account
+motf fmt -c storage-account
 
 # Initialize a base
-tfpl init -b k8s-argocd
+motf init -b k8s-argocd
 
 # Validate a project (with init)
-tfpl val -i -p prod-infra
+motf val -i -p prod-infra
 
 # Use explicit path
-tfpl fmt --path components/azurerm/key-vault
+motf fmt --path components/azurerm/key-vault
 
 # Pass extra arguments to terraform
-tfpl init -c storage-account -a -upgrade
+motf init -c storage-account -a -upgrade
 ```
 
 ## Components

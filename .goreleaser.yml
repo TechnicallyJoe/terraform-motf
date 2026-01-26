@@ -1,6 +1,6 @@
 version: 2
 
-project_name: tfpl
+project_name: motf
 
 before:
   hooks:
@@ -8,9 +8,9 @@ before:
     - go generate ./...
 
 builds:
-  - id: tfpl
+  - id: motf
     main: .
-    binary: tfpl
+    binary: motf
     env:
       - CGO_ENABLED=0
     goos:
@@ -22,9 +22,9 @@ builds:
       - arm64
     ldflags:
       - -s -w
-      - -X github.com/TechnicallyJoe/tfpl/cmd.version={{.Version}}
-      - -X github.com/TechnicallyJoe/tfpl/cmd.commit={{.Commit}}
-      - -X github.com/TechnicallyJoe/tfpl/cmd.date={{.Date}}
+      - -X github.com/TechnicallyJoe/terraform-motf/cmd.version={{.Version}}
+      - -X github.com/TechnicallyJoe/terraform-motf/cmd.commit={{.Commit}}
+      - -X github.com/TechnicallyJoe/terraform-motf/cmd.date={{.Date}}
 
 archives:
   - id: default
@@ -66,13 +66,13 @@ changelog:
 release:
   github:
     owner: TechnicallyJoe
-    name: tfpl
+    name: terraform-motf
   draft: false
   prerelease: auto
   mode: replace
   header: |
-    ## tfpl {{ .Version }}
+    ## motf {{ .Version }}
 
     To install, download the appropriate binary for your platform below.
   footer: |
-    **Full Changelog**: https://github.com/TechnicallyJoe/tfpl/compare/{{ .PreviousTag }}...{{ .Tag }}
+    **Full Changelog**: https://github.com/TechnicallyJoe/terraform-motf/compare/{{ .PreviousTag }}...{{ .Tag }}

@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"sort"
 
-	"github.com/TechnicallyJoe/tfpl/internal/tasks"
+	"github.com/TechnicallyJoe/terraform-motf/internal/tasks"
 	"github.com/spf13/cobra"
 )
 
@@ -15,18 +15,18 @@ var (
 
 var taskCmd = &cobra.Command{
 	Use:   "task [module-name]",
-	Short: "Run a custom task from .tfpl.yml",
-	Long: `Run a custom task defined in .tfpl.yml on a module.
+	Short: "Run a custom task from .motf.yml",
+	Long: `Run a custom task defined in .motf.yml on a module.
 
-Tasks are shell commands configured in your .tfpl.yml file under the 'tasks' section.
+Tasks are shell commands configured in your .motf.yml file under the 'tasks' section.
 By default, or with --list, shows all available tasks.
 
 Examples:
-  tfpl task storage-account                    # List available tasks
-  tfpl task storage-account --list             # List available tasks
-  tfpl task storage-account -t hello-world     # Run 'hello-world' task
-  tfpl task storage-account --task lint        # Run 'lint' task
-  tfpl task --path ./modules/x -t docs         # Run task on explicit path`,
+  motf task storage-account                    # List available tasks
+  motf task storage-account --list             # List available tasks
+  motf task storage-account -t hello-world     # Run 'hello-world' task
+  motf task storage-account --task lint        # Run 'lint' task
+  motf task --path ./modules/x -t docs         # Run task on explicit path`,
 	Args: cobra.MaximumNArgs(1),
 	RunE: func(cmd *cobra.Command, args []string) error {
 		// If no task specified, list tasks
@@ -48,7 +48,7 @@ Examples:
 
 func listTasks() error {
 	if len(cfg.Tasks) == 0 {
-		fmt.Println("No tasks defined in .tfpl.yml")
+		fmt.Println("No tasks defined in .motf.yml")
 		return nil
 	}
 

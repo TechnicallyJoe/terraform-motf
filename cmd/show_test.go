@@ -5,7 +5,7 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/TechnicallyJoe/tfpl/internal/config"
+	"github.com/TechnicallyJoe/terraform-motf/internal/config"
 )
 
 func TestDirHasContent_Empty(t *testing.T) {

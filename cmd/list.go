@@ -7,8 +7,8 @@ import (
 	"path/filepath"
 	"sort"
 
-	"github.com/TechnicallyJoe/tfpl/internal/finder"
-	"github.com/TechnicallyJoe/tfpl/internal/spacelift"
+	"github.com/TechnicallyJoe/terraform-motf/internal/finder"
+	"github.com/TechnicallyJoe/terraform-motf/internal/spacelift"
 	"github.com/spf13/cobra"
 )
 
@@ -25,10 +25,10 @@ Use the --search/-s flag to filter modules using wildcards.
 Use the --json flag to output in JSON format for scripting.
 
 Examples:
-  tfpl list                    # List all modules
-  tfpl list -s storage         # List modules containing "storage"
-  tfpl list -s *account*       # List modules with "account" anywhere in the name
-  tfpl list --json             # Output as JSON`,
+  motf list                    # List all modules
+  motf list -s storage         # List modules containing "storage"
+  motf list -s *account*       # List modules with "account" anywhere in the name
+  motf list --json             # Output as JSON`,
 	RunE: runList,
 }
 

@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/TechnicallyJoe/tfpl/internal/config"
-	"github.com/TechnicallyJoe/tfpl/internal/terraform"
+	"github.com/TechnicallyJoe/terraform-motf/internal/config"
+	"github.com/TechnicallyJoe/terraform-motf/internal/terraform"
 	"github.com/spf13/cobra"
 )
 
@@ -34,24 +34,24 @@ var (
 
 // versionTemplate returns the version string with commit and date
 func versionTemplate() string {
-	return fmt.Sprintf("tfpl version %s\ncommit: %s\nbuilt:  %s\n", version, commit, date)
+	return fmt.Sprintf("motf version %s\ncommit: %s\nbuilt:  %s\n", version, commit, date)
 }
 
 // rootCmd represents the base command
 var rootCmd = &cobra.Command{
-	Use:     "tfpl",
-	Short:   "Terraform Polylith CLI tool",
+	Use:     "motf",
+	Short:   "Terraform Monorepo Orchestrator (pronounced 'motif')",
 	Version: version,
-	Long: `tfpl (Terraform Polylith) is a CLI tool for working with polylith-style Terraform repositories.
+	Long: `motf (Terraform Monorepo Orchestrator) is a CLI tool for working with Terraform monorepos.
 
 It supports running terraform/tofu commands on components, bases, and projects organized
-in a polylith structure.`,
-	Example: `  tfpl fmt storage-account         # Run fmt on storage-account (searches all types)
-  tfpl val k8s-argocd              # Run validate on k8s-argocd
-  tfpl val -i k8s-argocd           # Run init then validate on k8s-argocd
-  tfpl init k8s-argocd             # Run init on k8s-argocd
-  tfpl fmt --path iac/components/azurerm/storage-account  # Run fmt on explicit path
-  tfpl init storage-account -a -upgrade -a -reconfigure  # Run init with extra args`,
+in a structured monorepo.`,
+	Example: `  motf fmt storage-account         # Run fmt on storage-account (searches all types)
+  motf val k8s-argocd              # Run validate on k8s-argocd
+  motf val -i k8s-argocd           # Run init then validate on k8s-argocd
+  motf init k8s-argocd             # Run init on k8s-argocd
+  motf fmt --path iac/components/azurerm/storage-account  # Run fmt on explicit path
+  motf init storage-account -a -upgrade -a -reconfigure  # Run init with extra args`,
 	PersistentPreRunE: func(cmd *cobra.Command, args []string) error {
 		// Load configuration
 		wd, err := os.Getwd()

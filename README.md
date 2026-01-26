@@ -1,15 +1,17 @@
-# tfpl - Terraform Polylith CLI
+# motf - Terraform Monorepo Orchestrator
 
-A command-line tool for working with polylith-style Terraform repositories. `tfpl` makes it easy to run terraform/tofu commands on components, bases, and projects organized in a polylith structure.
+> **Pronounced "motif"**
 
-![tfpl demo](assets/demo.gif)
+A command-line tool for working with Terraform monorepos. `motf` (pronounced `motif`) makes it easy to run terraform/tofu commands on components, bases, and projects organized in a monorepo structure.
+
+![motf demo](assets/demo.gif)
 
 ## Features
 
 - **Simple commands**: Run `init`, `fmt`, `validate`, and `test` on components, bases, or projects
 - **Module inspection**: Use `show` to view detailed module information including submodules, tests, and examples
 - **Example targeting**: Run commands on specific examples within modules using the `-e` flag
-- **Configurable**: Support for both `terraform` and `tofu` via `.tfpl.yml`
+- **Configurable**: Support for both `terraform` and `tofu` via `.motf.yml`
 - **Test support**: Run terratests or native terraform/tofu tests on modules
 - **Smart discovery**: Recursively finds modules in nested subdirectories
 - **Clash detection**: Warns when multiple modules share the same name
@@ -20,15 +22,15 @@ A command-line tool for working with polylith-style Terraform repositories. `tfp
 ### Using go install
 
 ```bash
-go install github.com/TechnicallyJoe/tfpl@latest
+go install github.com/TechnicallyJoe/terraform-motf@latest
 ```
 
 ### Building from source
 
 ```bash
-git clone https://github.com/TechnicallyJoe/tfpl.git
-cd tfpl
-go build -o tfpl .
+git clone https://github.com/TechnicallyJoe/terraform-motf.git
+cd terraform-motf
+go build -o motf .
 ```
 
 ## Requirements
@@ -40,51 +42,51 @@ go build -o tfpl .
 
 ### Commands
 
-#### `tfpl init`
+#### `motf init`
 Run `terraform init` or `tofu init` on a module:
 
 ```bash
-tfpl init storage-account       # Init storage-account (searches components, bases, and projects)
-tfpl init k8s-argocd           # Init k8s-argocd
-tfpl init storage-account -e basic  # Init the 'basic' example of storage-account
+motf init storage-account       # Init storage-account (searches components, bases, and projects)
+motf init k8s-argocd           # Init k8s-argocd
+motf init storage-account -e basic  # Init the 'basic' example of storage-account
 ```
 
-#### `tfpl fmt`
+#### `motf fmt`
 Run `terraform fmt` or `tofu fmt` on a module:
 
 ```bash
-tfpl fmt storage-account       # Format storage-account
-tfpl fmt k8s-argocd           # Format k8s-argocd
-tfpl fmt -i storage-account   # Init then format storage-account
-tfpl fmt storage-account -e basic  # Format the 'basic' example
+motf fmt storage-account       # Format storage-account
+motf fmt k8s-argocd           # Format k8s-argocd
+motf fmt -i storage-account   # Init then format storage-account
+motf fmt storage-account -e basic  # Format the 'basic' example
 ```
 
-#### `tfpl val` (or `validate`)
+#### `motf val` (or `validate`)
 Run `terraform validate` or `tofu validate` on a module:
 
 ```bash
-tfpl val storage-account       # Validate storage-account
-tfpl validate k8s-argocd      # Validate k8s-argocd
-tfpl val -i spacelift-modules # Init then validate spacelift-modules
-tfpl val storage-account -e basic  # Validate the 'basic' example
+motf val storage-account       # Validate storage-account
+motf validate k8s-argocd      # Validate k8s-argocd
+motf val -i spacelift-modules # Init then validate spacelift-modules
+motf val storage-account -e basic  # Validate the 'basic' example
 ```
 
-#### `tfpl test`
+#### `motf test`
 Run tests on a module using the configured test engine (terratest by default):
 
 ```bash
-tfpl test storage-account           # Run tests on storage-account
-tfpl test storage-account -a -v     # Run tests with verbose output
-tfpl test storage-account -a -timeout=30m  # Run tests with custom timeout
+motf test storage-account           # Run tests on storage-account
+motf test storage-account -a -v     # Run tests with verbose output
+motf test storage-account -a -timeout=30m  # Run tests with custom timeout
 ```
 
 The test command uses the configured test engine (default: terratest) to run tests. For terratest, this executes `go test ./...` in the module directory. Tests should be defined within each module directory.
 
-#### `tfpl config`
+#### `motf config`
 Show current configuration:
 
 ```bash
-tfpl config
+motf config
 ```
 
 Output:
@@ -98,13 +100,13 @@ Test configuration:
   Args:   (none)
 ```
 
-#### `tfpl show`
+#### `motf show`
 Show detailed information about a module:
 
 ```bash
-tfpl show storage-account      # Show details for storage-account
-tfpl show --path ./my-module   # Show details for module at explicit path
-tfpl show storage-account --json  # Output as JSON for scripting
+motf show storage-account      # Show details for storage-account
+motf show --path ./my-module   # Show details for module at explicit path
+motf show storage-account --json  # Output as JSON for scripting
 ```
 
 Output:
@@ -124,14 +126,14 @@ Tests:
   - basic_test.go (components/azurerm/storage-account/tests/basic_test.go)
 ```
 
-#### `tfpl list`
+#### `motf list`
 List all modules in the repository:
 
 ```bash
-tfpl list                    # List all modules
-tfpl list -s storage         # Filter modules containing "storage"
-tfpl list -s *account*       # Filter with wildcards
-tfpl list --json             # Output as JSON for scripting
+motf list                    # List all modules
+motf list -s storage         # Filter modules containing "storage"
+motf list -s *account*       # Filter with wildcards
+motf list --json             # Output as JSON for scripting
 ```
 
 ### Flags
@@ -151,48 +153,48 @@ tfpl list --json             # Output as JSON for scripting
 
 ```bash
 # Format a component
-tfpl fmt storage-account
+motf fmt storage-account
 
 # Validate a base (with init first)
-tfpl val -i k8s-argocd
+motf val -i k8s-argocd
 
 # Run commands on a specific example
-tfpl init storage-account -e basic
-tfpl val -i storage-account -e basic
+motf init storage-account -e basic
+motf val -i storage-account -e basic
 
 # Run tests on a module
-tfpl test storage-account
+motf test storage-account
 
 # Run tests with additional arguments
-tfpl test storage-account -a -v -a -timeout=30m
+motf test storage-account -a -v -a -timeout=30m
 
 # Use explicit path
-tfpl fmt --path iac/components/azurerm/storage-account
+motf fmt --path iac/components/azurerm/storage-account
 
 # Init a project
-tfpl init spacelift-modules
+motf init spacelift-modules
 
 # Pass extra arguments
-tfpl init storage-account -a -upgrade -a -reconfigure
+motf init storage-account -a -upgrade -a -reconfigure
 
 # Show module details
-tfpl show storage-account
-tfpl show storage-account --json
+motf show storage-account
+motf show storage-account --json
 
 # List all modules
-tfpl list
-tfpl list -s *storage* --json
+motf list
+motf list -s *storage* --json
 
 # Show version
-tfpl -v
+motf -v
 ```
 
 ## Configuration File
 
-Create a `.tfpl.yml` file in your repository root to configure `tfpl`:
+Create a `.motf.yml` file in your repository root to configure `motf`:
 
 ```yaml
-# The root directory containing the polylith structure (components, bases, projects)
+# The root directory containing the monorepo structure (components, bases, projects)
 # Default: "" (repository root)
 root: iac
 
@@ -222,15 +224,15 @@ test:
 | `test.engine` | string | `"terratest"` | Test engine: `"terratest"`, `"terraform"`, or `"tofu"` |
 | `test.args` | string | `""` | Additional arguments passed to the test command |
 
-The configuration file is optional. If not present, `tfpl` will use default values (empty root, "terraform" binary, "terratest" engine).
+The configuration file is optional. If not present, `motf` will use default values (empty root, "terraform" binary, "terratest" engine).
 
 ## Expected Directory Structure
 
-`tfpl` expects a polylith-style repository structure:
+`motf` expects a monorepo structure:
 
 ```
 repository-root/
-├── .tfpl.yml              # Configuration file (optional)
+├── .motf.yml              # Configuration file (optional)
 └── iac/                   # Root directory (if configured as "root: iac")
     ├── components/
     │   ├── aws/
@@ -251,7 +253,7 @@ Each module directory (component, base, or project) should contain at least one 
 
 ### Nested Subfolders
 
-`tfpl` recursively searches for modules in nested subdirectories. For example:
+`motf` recursively searches for modules in nested subdirectories. For example:
 
 ```
 iac/components/
@@ -265,13 +267,13 @@ iac/components/
 You can refer to modules by name regardless of their nesting:
 
 ```bash
-tfpl fmt storage-account  # Finds iac/components/azurerm/storage-account
-tfpl fmt s3-bucket       # Finds iac/components/aws/s3-bucket
+motf fmt storage-account  # Finds iac/components/azurerm/storage-account
+motf fmt s3-bucket       # Finds iac/components/aws/s3-bucket
 ```
 
 ### Name Clashes
 
-If multiple modules share the same name in different locations, `tfpl` will detect the clash and provide a helpful error:
+If multiple modules share the same name in different locations, `motf` will detect the clash and provide a helpful error:
 
 ```
 Error: multiple modules named 'naming' found - name clash detected:
@@ -284,17 +286,17 @@ Please use --path to specify the exact path
 To resolve this, use the `--path` flag with an explicit path:
 
 ```bash
-tfpl fmt --path iac/components/azurerm/naming
+motf fmt --path iac/components/azurerm/naming
 ```
 
 ### Module Type Detection
 
-`tfpl` automatically searches for modules across all three directories (components, bases, and projects). You don't need to specify the module type - just provide the name:
+`motf` automatically searches for modules across all three directories (components, bases, and projects). You don't need to specify the module type - just provide the name:
 
 ```bash
-tfpl fmt storage-account  # Searches in components, bases, and projects
-tfpl val k8s-argocd      # Automatically finds it in bases/
-tfpl init prod-infra     # Automatically finds it in projects/
+motf fmt storage-account  # Searches in components, bases, and projects
+motf val k8s-argocd      # Automatically finds it in bases/
+motf init prod-infra     # Automatically finds it in projects/
 ```
 
 ### Mutual Exclusivity
@@ -306,7 +308,7 @@ The following combinations are not allowed:
 Example error:
 
 ```bash
-tfpl fmt storage --path iac/components/storage
+motf fmt storage --path iac/components/storage
 # Error: --path is mutually exclusive with module name argument
 ```
 
@@ -321,7 +323,7 @@ go test ./...
 ### Building
 
 ```bash
-go build -o tfpl .
+go build -o motf .
 ```
 
 ## Releases
@@ -342,7 +344,7 @@ This triggers the release workflow which:
 
 ### Download
 
-Download the latest release from the [Releases page](https://github.com/TechnicallyJoe/tfpl/releases).
+Download the latest release from the [Releases page](https://github.com/TechnicallyJoe/terraform-motf/releases).
 
 ## CI/CD
 

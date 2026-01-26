@@ -6,7 +6,7 @@ import (
 	"os/exec"
 	"strings"
 
-	"github.com/TechnicallyJoe/tfpl/internal/config"
+	"github.com/TechnicallyJoe/terraform-motf/internal/config"
 )
 
 // Runner executes terraform/tofu commands using configuration

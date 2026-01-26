@@ -14,9 +14,9 @@ var valCmd = &cobra.Command{
 Use the --example/-e flag to run validate on a specific example instead of the module itself.
 
 Examples:
-  tfpl val storage-account              # Run validate on storage-account module
-  tfpl val storage-account -e basic     # Run validate on the 'basic' example
-  tfpl val -i storage-account -e basic  # Run init then validate on the 'basic' example`,
+  motf val storage-account              # Run validate on storage-account module
+  motf val storage-account -e basic     # Run validate on the 'basic' example
+  motf val -i storage-account -e basic  # Run init then validate on the 'basic' example`,
 	Args: cobra.MaximumNArgs(1),
 	RunE: func(cmd *cobra.Command, args []string) error {
 		targetPath, err := resolveTargetWithExample(args, exampleFlag)

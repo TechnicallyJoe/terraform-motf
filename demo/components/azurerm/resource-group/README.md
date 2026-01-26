@@ -1,16 +1,16 @@
 # Demo Component: Resource Group
 
-This is a demo Terraform component for testing tfpl functionality.
+This is a demo Terraform component for testing motf functionality.
 
 ## Usage
 
 ```bash
 # Format
-tfpl fmt resource-group
+motf fmt resource-group
 
 # Initialize
-tfpl init resource-group
+motf init resource-group
 
 # Validate
-tfpl val resource-group
+motf val resource-group
 ```

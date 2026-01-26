@@ -1,15 +1,15 @@
-# Copilot Instructions for tfpl
+# Copilot Instructions for motf
 
 ## Project Overview
 
-`tfpl` is a Go CLI tool for managing polylith-style Terraform repositories. It wraps terraform/tofu commands (`init`, `fmt`, `validate`, `test`) to work with modules organized into three categories: **components**, **bases**, and **projects**.
+`motf` is a Go CLI tool for managing polylith-style Terraform repositories. It wraps terraform/tofu commands (`init`, `fmt`, `validate`, `test`) to work with modules organized into three categories: **components**, **bases**, and **projects**.
 
 ## Architecture
 
 ```
 cmd/           → Cobra CLI commands (root.go, init.go, fmt.go, validate.go, test.go, list.go, show.go)
 internal/
-  config/      → .tfpl.yml configuration loading and validation
+  config/      → .motf.yml configuration loading and validation
   finder/      → Module discovery via recursive directory walking
   terraform/   → Terraform/tofu command execution wrapper
 demo/          → Test fixture with polylith structure (components/, bases/, projects/)
@@ -30,7 +30,7 @@ e2e/           → End-to-end tests that build the binary and run against demo/
 
 ```bash
 # Build
-go build -o tfpl .
+go build -o motf .
 
 # Run all unit tests
 go test ./...
@@ -43,8 +43,8 @@ go test ./internal/... -v
 cd e2e && go test -v
 
 # Quick manual test against demo
-./tfpl list          # from repo root with demo/ present
-./tfpl show storage-account
+./motf list          # from repo root with demo/ present
+./motf show storage-account
 ```
 
 ## Code Conventions
@@ -75,7 +75,7 @@ return fmt.Errorf("failed to read config file: %s", err.Error())
 
 **E2E tests** (`e2e/e2e_test.go`):
 - Test complete CLI commands from start to finish
-- Build the binary fresh via `buildTfpl(t)` helper
+- Build the binary fresh via `buildMotf(t)` helper
 - Run against the `demo/` directory as real-world fixture
 - Skip tests requiring terraform: `skipIfNoTerraform(t)`
 
@@ -106,7 +106,7 @@ demo/
 - Name clashes (same module name in multiple locations) produce explicit errors
 
 ### Configuration
-- Config file: `.tfpl.yml` (optional, searched up to git root)
+- Config file: `.motf.yml` (optional, searched up to git root)
 - Valid binaries: `terraform` or `tofu` only
 - Test engines: `terratest` (runs `go test ./...`), `terraform`, or `tofu`
 

@@ -106,7 +106,7 @@ jobs:
           cache: true
 
       - name: Build
-        run: go build -o tfpl .
+        run: go build -o motf .
 
       - name: Verify binary
-        run: ./tfpl --version
+        run: ./motf --version

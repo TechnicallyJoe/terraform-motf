@@ -1,4 +1,4 @@
-module github.com/TechnicallyJoe/tfpl
+module github.com/TechnicallyJoe/terraform-motf
 
 go 1.25
 

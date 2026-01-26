@@ -1,16 +1,16 @@
 # Demo Component: Storage Account
 
-This is a demo Terraform component for testing tfpl functionality.
+This is a demo Terraform component for testing motf functionality.
 
 ## Usage
 
 ```bash
 # Format
-tfpl fmt -c storage-account
+motf fmt -c storage-account
 
 # Initialize
-tfpl init -c storage-account
+motf init -c storage-account
 
 # Validate
-tfpl val -c storage-account
+motf val -c storage-account
 ```
