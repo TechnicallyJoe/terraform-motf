@@ -1,7 +1,5 @@
 # motf - Terraform Monorepo Orchestrator
 
-> **Pronounced "motif"**
-
 A command-line tool for working with Terraform monorepos. `motf` (pronounced `motif`) makes it easy to run terraform/tofu commands on components, bases, and projects organized in a monorepo structure.
 
 ![motf demo](assets/demo.gif)
