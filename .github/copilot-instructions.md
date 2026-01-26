@@ -7,8 +7,10 @@
 ## Architecture
 
 ```
-cmd/           → Cobra CLI commands (root.go, init.go, fmt.go, validate.go, test.go, list.go, show.go)
+cmd/
+  motf/        → Main entrypoint (imports internal/cli)
 internal/
+  cli/         → Cobra CLI commands (root.go, init.go, fmt.go, validate.go, test.go, list.go, show.go)
   config/      → .motf.yml configuration loading and validation
   finder/      → Module discovery via recursive directory walking
   terraform/   → Terraform/tofu command execution wrapper
@@ -17,11 +19,11 @@ e2e/           → End-to-end tests that build the binary and run against demo/
 ```
 
 ### Key Data Flow
-1. `cmd/root.go` → Loads config via `internal/config`, creates `terraform.Runner`
-2. `cmd/helpers.go` → `resolveTargetPath()` uses `internal/finder` to locate modules by name
+1. `internal/cli/root.go` → Loads config via `internal/config`, creates `terraform.Runner`
+2. `internal/cli/helpers.go` → `resolveTargetPath()` uses `internal/finder` to locate modules by name
 3. `internal/terraform/terraform.go` → Executes terraform/tofu with configured binary
 
-### Module Types (defined in `cmd/types.go`)
+### Module Types (defined in `internal/cli/types.go`)
 - **components**: Reusable Terraform modules (e.g., `storage-account`)
 - **bases**: Composable base configurations (e.g., `k8s-argocd`)
 - **projects**: Deployable infrastructure projects
@@ -30,7 +32,7 @@ e2e/           → End-to-end tests that build the binary and run against demo/
 
 ```bash
 # Build
-go build -o motf .
+go build -o motf ./cmd/motf
 
 # Run all unit tests
 go test ./...
@@ -50,7 +52,7 @@ cd e2e && go test -v
 ## Code Conventions
 
 ### CLI Commands
-- Each command lives in `cmd/<command>.go` with matching `cmd/<command>_test.go`
+- Each command lives in `internal/cli/<command>.go` with matching `internal/cli/<command>_test.go`
 - Commands use `cobra.Command` with `RunE` returning errors (not `Run`)
 - Register commands in `init()` via `rootCmd.AddCommand()`
 - Flags: use `StringVarP`/`BoolVar` in `init()`, store in package-level vars
@@ -67,7 +69,7 @@ return fmt.Errorf("failed to read config file: %s", err.Error())
 
 ### Testing Patterns
 
-**Unit tests** (`cmd/*_test.go`, `internal/*_test.go`):
+**Unit tests** (`internal/cli/*_test.go`, `internal/*_test.go`):
 - Test individual functions in isolation
 - Use `t.TempDir()` for isolated filesystems
 - Reset package-level flag vars after use (e.g., `argsFlag = []string{}`)
@@ -113,10 +115,11 @@ demo/
 ## Key Files Reference
 
 | File | Purpose |
-|------|---------|
-| [cmd/root.go](cmd/root.go) | Entry point, global flags, config loading |
-| [cmd/helpers.go](cmd/helpers.go) | `resolveTargetPath()`, module type detection |
-| [cmd/types.go](cmd/types.go) | Constants for module dirs/types, `ModuleInfo` struct |
+|------|---------||
+| [cmd/motf/main.go](cmd/motf/main.go) | Main entrypoint |
+| [internal/cli/root.go](internal/cli/root.go) | CLI root, global flags, config loading |
+| [internal/cli/helpers.go](internal/cli/helpers.go) | `resolveTargetPath()`, module type detection |
+| [internal/cli/types.go](internal/cli/types.go) | Constants for module dirs/types, `ModuleInfo` struct |
 | [internal/finder/finder.go](internal/finder/finder.go) | `FindModule()`, `ListAllModules()` |
 | [internal/terraform/terraform.go](internal/terraform/terraform.go) | `Runner` with `RunInit/Fmt/Validate/Test` |
 | [demo/](demo/) | Test fixture - always test changes against this |
@@ -124,9 +127,9 @@ demo/
 ## Common Tasks
 
 ### Adding a New Command
-1. Create `cmd/<name>.go` with `var <name>Cmd = &cobra.Command{...}`
+1. Create `internal/cli/<name>.go` with `var <name>Cmd = &cobra.Command{...}`
 2. Add `init()` with `rootCmd.AddCommand(<name>Cmd)`
-3. Create `cmd/<name>_test.go` with unit tests
+3. Create `internal/cli/<name>_test.go` with unit tests
 4. Add e2e test case in `e2e/e2e_test.go`
 
 ### Modifying Module Discovery

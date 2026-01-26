@@ -106,7 +106,7 @@ jobs:
           cache: true
 
       - name: Build
-        run: go build -o motf .
+        run: go build -o motf ./cmd/motf
 
       - name: Verify binary
         run: ./motf --version

@@ -22,7 +22,7 @@ A command-line tool for working with Terraform monorepos. `motf` (pronounced `mo
 ### Using go install
 
 ```bash
-go install github.com/TechnicallyJoe/terraform-motf@latest
+go install github.com/TechnicallyJoe/terraform-motf/cmd/motf@latest
 ```
 
 ### Building from source
@@ -30,7 +30,7 @@ go install github.com/TechnicallyJoe/terraform-motf@latest
 ```bash
 git clone https://github.com/TechnicallyJoe/terraform-motf.git
 cd terraform-motf
-go build -o motf .
+go build -o motf ./cmd/motf
 ```
 
 ## Requirements
