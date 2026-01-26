@@ -55,7 +55,7 @@ func buildMotf(t *testing.T) string {
 
 	projectRoot := getProjectRoot(t)
 
-	cmd := exec.Command("go", "build", "-o", binaryPath, ".")
+	cmd := exec.Command("go", "build", "-o", binaryPath, "./cmd/motf")
 	cmd.Dir = projectRoot
 	output, err := cmd.CombinedOutput()
 	if err != nil {

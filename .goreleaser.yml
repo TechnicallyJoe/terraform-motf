@@ -9,7 +9,7 @@ before:
 
 builds:
   - id: motf
-    main: .
+    main: ./cmd/motf
     binary: motf
     env:
       - CGO_ENABLED=0
@@ -22,9 +22,9 @@ builds:
       - arm64
     ldflags:
       - -s -w
-      - -X github.com/TechnicallyJoe/terraform-motf/cmd.version={{.Version}}
-      - -X github.com/TechnicallyJoe/terraform-motf/cmd.commit={{.Commit}}
-      - -X github.com/TechnicallyJoe/terraform-motf/cmd.date={{.Date}}
+      - -X github.com/TechnicallyJoe/terraform-motf/internal/cli.version={{.Version}}
+      - -X github.com/TechnicallyJoe/terraform-motf/internal/cli.commit={{.Commit}}
+      - -X github.com/TechnicallyJoe/terraform-motf/internal/cli.date={{.Date}}
 
 archives:
   - id: default

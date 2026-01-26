@@ -1,4 +1,4 @@
-package cmd
+package cli
 
 // Module directory constants
 const (
