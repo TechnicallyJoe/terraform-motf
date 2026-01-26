@@ -10,24 +10,45 @@ import (
 var configCmd = &cobra.Command{
 	Use:   "config",
 	Short: "Show current configuration",
+	Long:  "Display the current configuration values, showing which config file is in use (if any) and the effective settings.",
 	RunE: func(cmd *cobra.Command, args []string) error {
-		fmt.Println("Current configuration:")
-		fmt.Printf("  root:   %s\n", cfg.Root)
-		fmt.Printf("  binary: %s\n", cfg.Binary)
+		// Show config file status first - most important info
 		if cfg.ConfigPath != "" {
-			fmt.Printf("  config: %s\n", cfg.ConfigPath)
+			fmt.Printf("Config file: %s\n\n", cfg.ConfigPath)
 		} else {
-			fmt.Printf("  config: none (using defaults)\n")
+			fmt.Print("Config file: none (using defaults)\n\n")
 		}
-		fmt.Println("\nTest configuration:")
-		fmt.Printf("  engine: %s\n", cfg.Test.Engine)
-		if cfg.Test.Args != "" {
-			fmt.Printf("  args:   %s\n", cfg.Test.Args)
+
+		fmt.Println("Settings:")
+		fmt.Printf("  root:   %s\n", valueOrDefault(cfg.Root, "(current directory)"))
+		fmt.Printf("  binary: %s\n", cfg.Binary)
+
+		fmt.Println("\nTest:")
+		if cfg.Test != nil {
+			fmt.Printf("  engine: %s\n", cfg.Test.Engine)
+			fmt.Printf("  args:   %s\n", valueOrDefault(cfg.Test.Args, "(none)"))
 		} else {
-			fmt.Printf("  args:   (none)\n")
+			fmt.Println("  engine: terratest (default)")
+			fmt.Println("  args:   (none)")
 		}
+
+		if len(cfg.Tasks) > 0 {
+			fmt.Println("\nTasks:")
+			for name := range cfg.Tasks {
+				fmt.Printf("  - %s\n", name)
+			}
+		}
+
 		return nil
 	},
+}
+
+// valueOrDefault returns the value if non-empty, otherwise the default string
+func valueOrDefault(value, defaultStr string) string {
+	if value == "" {
+		return defaultStr
+	}
+	return value
 }
 
 func init() {

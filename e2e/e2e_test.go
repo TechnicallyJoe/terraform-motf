@@ -321,14 +321,14 @@ func TestE2E_ConfigCommand(t *testing.T) {
 	}
 
 	outputStr := string(output)
-	if !strings.Contains(outputStr, "Binary:") {
-		t.Error("config output should contain 'Binary:'")
+	if !strings.Contains(outputStr, "binary:") {
+		t.Error("config output should contain 'binary:'")
 	}
 	if !strings.Contains(outputStr, "terraform") {
 		t.Error("config output should contain 'terraform'")
 	}
-	if !strings.Contains(outputStr, "Config:") {
-		t.Error("config output should contain 'Config:'")
+	if !strings.Contains(outputStr, "Config file:") {
+		t.Error("config output should contain 'Config file:'")
 	}
 	// Demo directory has a .motf.yml file, so it should show the path
 	if !strings.Contains(outputStr, ".motf.yml") {
