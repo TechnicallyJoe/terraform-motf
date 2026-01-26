@@ -25,7 +25,7 @@ binary: tofu
 		t.Fatalf("failed to create config file: %v", err)
 	}
 
-	cfg, err := Load(tmpDir)
+	cfg, err := Load(tmpDir, "")
 	if err != nil {
 		t.Fatalf("Load() returned error: %v", err)
 	}
@@ -56,7 +56,7 @@ func TestLoad_WithConfigFileWithoutRoot(t *testing.T) {
 		t.Fatalf("failed to create config file: %v", err)
 	}
 
-	cfg, err := Load(tmpDir)
+	cfg, err := Load(tmpDir, "")
 	if err != nil {
 		t.Fatalf("Load() returned error: %v", err)
 	}
@@ -80,7 +80,7 @@ func TestLoad_NoConfigFile(t *testing.T) {
 		t.Fatalf("failed to create .git directory: %v", err)
 	}
 
-	cfg, err := Load(tmpDir)
+	cfg, err := Load(tmpDir, "")
 	if err != nil {
 		t.Fatalf("Load() returned error: %v", err)
 	}
@@ -125,7 +125,7 @@ func TestLoad_StopsAtGitRoot(t *testing.T) {
 	}
 
 	// Load from nested directory - should find config at repo root
-	cfg, err := Load(nestedDir)
+	cfg, err := Load(nestedDir, "")
 	if err != nil {
 		t.Fatalf("Load() returned error: %v", err)
 	}
@@ -170,7 +170,7 @@ root: /outside/root
 	}
 
 	// Load from subdir - should NOT find the config outside the git repo
-	cfg, err := Load(subDir)
+	cfg, err := Load(subDir, "")
 	if err != nil {
 		t.Fatalf("Load() returned error: %v", err)
 	}
@@ -219,7 +219,7 @@ func TestLoad_ConfigInSubdirectory(t *testing.T) {
 	}
 
 	// Load from nested directory - should find config in subdir
-	cfg, err := Load(nestedDir)
+	cfg, err := Load(nestedDir, "")
 	if err != nil {
 		t.Fatalf("Load() returned error: %v", err)
 	}
@@ -317,7 +317,7 @@ func TestLoad_InvalidBinary(t *testing.T) {
 		t.Fatalf("failed to create config file: %v", err)
 	}
 
-	_, err := Load(tmpDir)
+	_, err := Load(tmpDir, "")
 	if err == nil {
 		t.Error("expected error for invalid binary, got nil")
 	}
@@ -333,7 +333,7 @@ func TestLoad_TestConfigDefaults(t *testing.T) {
 	}
 
 	// Load without config file - should get defaults
-	cfg, err := Load(tmpDir)
+	cfg, err := Load(tmpDir, "")
 	if err != nil {
 		t.Fatalf("Load() returned error: %v", err)
 	}
@@ -369,7 +369,7 @@ test:
 		t.Fatalf("failed to create config file: %v", err)
 	}
 
-	cfg, err := Load(tmpDir)
+	cfg, err := Load(tmpDir, "")
 	if err != nil {
 		t.Fatalf("Load() returned error: %v", err)
 	}
@@ -404,7 +404,7 @@ test:
 		t.Fatalf("failed to create config file: %v", err)
 	}
 
-	cfg, err := Load(tmpDir)
+	cfg, err := Load(tmpDir, "")
 	if err != nil {
 		t.Fatalf("Load() returned error: %v", err)
 	}
@@ -418,5 +418,57 @@ test:
 	}
 	if cfg.Test.Args != "-v -timeout=30m" {
 		t.Errorf("expected Test.Args to be '-v -timeout=30m', got '%s'", cfg.Test.Args)
+	}
+}
+
+func TestLoad_ExplicitConfigPath(t *testing.T) {
+	tmpDir := t.TempDir()
+
+	// Create .git directory
+	gitDir := filepath.Join(tmpDir, ".git")
+	if err := os.Mkdir(gitDir, 0755); err != nil {
+		t.Fatalf("failed to create .git directory: %v", err)
+	}
+
+	// Create config file in a custom location
+	customDir := filepath.Join(tmpDir, "custom")
+	if err := os.Mkdir(customDir, 0755); err != nil {
+		t.Fatalf("failed to create custom directory: %v", err)
+	}
+
+	configContent := `binary: tofu
+root: ../iac
+`
+	customConfigPath := filepath.Join(customDir, "my-config.yml")
+	if err := os.WriteFile(customConfigPath, []byte(configContent), 0644); err != nil {
+		t.Fatalf("failed to create config file: %v", err)
+	}
+
+	// Load with explicit config path
+	cfg, err := Load(tmpDir, customConfigPath)
+	if err != nil {
+		t.Fatalf("Load() returned error: %v", err)
+	}
+
+	if cfg.Binary != "tofu" {
+		t.Errorf("expected Binary to be 'tofu', got '%s'", cfg.Binary)
+	}
+	if cfg.ConfigPath != customConfigPath {
+		t.Errorf("expected ConfigPath to be '%s', got '%s'", customConfigPath, cfg.ConfigPath)
+	}
+	// Root should be resolved relative to config file directory
+	expectedRoot := filepath.Join(customDir, "../iac")
+	if cfg.Root != expectedRoot {
+		t.Errorf("expected Root to be '%s', got '%s'", expectedRoot, cfg.Root)
+	}
+}
+
+func TestLoad_ExplicitConfigPath_NotFound(t *testing.T) {
+	tmpDir := t.TempDir()
+
+	// Try to load a non-existent config file
+	_, err := Load(tmpDir, "/nonexistent/config.yml")
+	if err == nil {
+		t.Error("expected error for non-existent config file, got nil")
 	}
 }

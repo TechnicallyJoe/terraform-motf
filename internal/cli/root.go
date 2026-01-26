@@ -21,8 +21,9 @@ var (
 	runner *terraform.Runner
 
 	// Global flags (persistent across all commands)
-	pathFlag string   // Explicit path to module
-	argsFlag []string // Extra arguments passed to terraform/tofu
+	pathFlag   string   // Explicit path to module
+	argsFlag   []string // Extra arguments passed to terraform/tofu
+	configFlag string   // Explicit path to config file
 
 	// Command-specific flags
 	// Note: These are registered per-command but share state here for simplicity.
@@ -61,7 +62,7 @@ in a structured monorepo.`,
 			return fmt.Errorf("failed to get working directory: %w", err)
 		}
 
-		cfg, err = config.Load(wd)
+		cfg, err = config.Load(wd, configFlag)
 		if err != nil {
 			return err
 		}
@@ -78,6 +79,7 @@ func init() {
 	rootCmd.SetVersionTemplate(versionTemplate())
 
 	// Add persistent flags
+	rootCmd.PersistentFlags().StringVarP(&configFlag, "config", "c", "", "Path to config file (default: searches for .motf.yml)")
 	rootCmd.PersistentFlags().StringVar(&pathFlag, "path", "", "Explicit path (mutually exclusive with module name)")
 	rootCmd.PersistentFlags().StringArrayVarP(&argsFlag, "args", "a", []string{}, "Extra arguments to pass to terraform/tofu (can be specified multiple times)")
 }
