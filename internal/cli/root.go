@@ -32,9 +32,11 @@ var (
 	exampleFlag string // Target a specific example instead of the module (init, fmt, validate)
 )
 
-// versionTemplate returns the version string with commit and date
+// versionTemplate returns the version string with commit and date.
+// It uses ldflags values if set, otherwise falls back to Go build info.
 func versionTemplate() string {
-	return fmt.Sprintf("motf version %s\ncommit: %s\nbuilt:  %s\n", version, commit, date)
+	v, c, d := effectiveVersion()
+	return fmt.Sprintf("motf version %s\ncommit: %s\nbuilt:  %s\n", v, c, d)
 }
 
 // rootCmd represents the base command
