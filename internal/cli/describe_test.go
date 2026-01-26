@@ -181,28 +181,27 @@ func TestDescribeCmd_ModuleNotFound(t *testing.T) {
 	}
 }
 
-func TestFormatDefault(t *testing.T) {
+func TestVariableInfo_DefaultString(t *testing.T) {
 	tests := []struct {
 		name     string
-		value    any
-		required bool
+		variable terraform.VariableInfo
 		want     string
 	}{
-		{"required", nil, true, "(required)"},
-		{"nil", nil, false, "null"},
-		{"empty string", "", false, `""`},
-		{"string", "hello", false, `"hello"`},
-		{"bool true", true, false, "true"},
-		{"bool false", false, false, "false"},
-		{"number", float64(42), false, "42"},
-		{"float", float64(3.14), false, "3.14"},
+		{"required", terraform.VariableInfo{Required: true}, "(required)"},
+		{"nil", terraform.VariableInfo{Required: false, Default: nil}, "null"},
+		{"empty string", terraform.VariableInfo{Default: ""}, `""`},
+		{"string", terraform.VariableInfo{Default: "hello"}, `"hello"`},
+		{"bool true", terraform.VariableInfo{Default: true}, "true"},
+		{"bool false", terraform.VariableInfo{Default: false}, "false"},
+		{"number", terraform.VariableInfo{Default: float64(42)}, "42"},
+		{"float", terraform.VariableInfo{Default: float64(3.14)}, "3.14"},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got := formatDefault(tt.value, tt.required)
+			got := tt.variable.DefaultString()
 			if got != tt.want {
-				t.Errorf("formatDefault(%v, %v) = %q, want %q", tt.value, tt.required, got, tt.want)
+				t.Errorf("DefaultString() = %q, want %q", got, tt.want)
 			}
 		})
 	}

@@ -62,6 +62,14 @@ func resolveVCSInfo(com, dat string, settings []debug.BuildSetting) (string, str
 	return com, dat
 }
 
+// getRoot returns the config root path, or empty string if not configured.
+func getRoot() string {
+	if cfg == nil {
+		return ""
+	}
+	return cfg.Root
+}
+
 // getBasePath returns the base path for module discovery based on cfg.Root
 func getBasePath() (string, error) {
 	wd, err := os.Getwd()

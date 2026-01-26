@@ -1,6 +1,8 @@
 package terraform
 
 import (
+	"encoding/json"
+	"fmt"
 	"path/filepath"
 	"sort"
 	"strings"
@@ -21,6 +23,37 @@ type VariableInfo struct {
 	Default     any    `json:"default,omitempty"`
 	Required    bool   `json:"required"`
 	Description string `json:"description,omitempty"`
+}
+
+// DefaultString returns a formatted string representation of the variable's default value.
+func (v VariableInfo) DefaultString() string {
+	if v.Required {
+		return "(required)"
+	}
+	if v.Default == nil {
+		return "null"
+	}
+	switch val := v.Default.(type) {
+	case string:
+		if val == "" {
+			return `""`
+		}
+		return fmt.Sprintf(`"%s"`, val)
+	case bool:
+		return fmt.Sprintf("%t", val)
+	case float64:
+		return fmt.Sprintf("%g", val)
+	default:
+		// For complex types (maps, lists), use JSON
+		if b, err := json.Marshal(val); err == nil {
+			s := string(b)
+			if len(s) > 12 {
+				return s[:12] + "..."
+			}
+			return s
+		}
+		return fmt.Sprintf("%v", val)
+	}
 }
 
 // OutputInfo represents a module output
