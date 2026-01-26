@@ -457,7 +457,7 @@ root: ../iac
 		t.Errorf("expected ConfigPath to be '%s', got '%s'", customConfigPath, cfg.ConfigPath)
 	}
 	// Root should be resolved relative to config file directory
-	expectedRoot := filepath.Join(customDir, "../iac")
+	expectedRoot := filepath.Clean(filepath.Join(customDir, "../iac"))
 	if cfg.Root != expectedRoot {
 		t.Errorf("expected Root to be '%s', got '%s'", expectedRoot, cfg.Root)
 	}
