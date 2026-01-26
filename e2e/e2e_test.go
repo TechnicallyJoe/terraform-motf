@@ -2,6 +2,7 @@ package e2e
 
 import (
 	"bytes"
+	"encoding/json"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -333,6 +334,71 @@ func TestE2E_ConfigCommand(t *testing.T) {
 	// Demo directory has a .motf.yml file, so it should show the path
 	if !strings.Contains(outputStr, ".motf.yml") {
 		t.Error("config output should contain '.motf.yml' path")
+	}
+}
+
+func TestE2E_DescribeCommand(t *testing.T) {
+	motfBinary := buildMotf(t)
+	demoPath := getDemoPath(t)
+
+	// Run describe on storage-account module (has variables, outputs, providers)
+	cmd := exec.Command(motfBinary, "describe", "storage-account")
+	cmd.Dir = demoPath
+	output, err := cmd.CombinedOutput()
+	if err != nil {
+		t.Fatalf("motf describe failed: %v\nOutput: %s", err, output)
+	}
+
+	outputStr := string(output)
+
+	// Check basic structure
+	if !strings.Contains(outputStr, "Module:") {
+		t.Error("describe output should contain 'Module:'")
+	}
+	if !strings.Contains(outputStr, "storage-account") {
+		t.Error("describe output should contain module name 'storage-account'")
+	}
+	if !strings.Contains(outputStr, "Path:") {
+		t.Error("describe output should contain 'Path:'")
+	}
+	if !strings.Contains(outputStr, "Variables:") {
+		t.Error("describe output should contain 'Variables:'")
+	}
+	if !strings.Contains(outputStr, "Outputs:") {
+		t.Error("describe output should contain 'Outputs:'")
+	}
+}
+
+func TestE2E_DescribeCommand_JSON(t *testing.T) {
+	motfBinary := buildMotf(t)
+	demoPath := getDemoPath(t)
+
+	// Run describe with --json flag
+	cmd := exec.Command(motfBinary, "describe", "storage-account", "--json")
+	cmd.Dir = demoPath
+	output, err := cmd.CombinedOutput()
+	if err != nil {
+		t.Fatalf("motf describe --json failed: %v\nOutput: %s", err, output)
+	}
+
+	// Should be valid JSON
+	var result map[string]interface{}
+	if err := json.Unmarshal(output, &result); err != nil {
+		t.Fatalf("describe --json output is not valid JSON: %v\nOutput: %s", err, output)
+	}
+
+	// Check expected fields
+	if result["name"] != "storage-account" {
+		t.Errorf("expected name 'storage-account', got '%v'", result["name"])
+	}
+	if _, ok := result["path"]; !ok {
+		t.Error("JSON output should contain 'path' field")
+	}
+	if _, ok := result["variables"]; !ok {
+		t.Error("JSON output should contain 'variables' field")
+	}
+	if _, ok := result["outputs"]; !ok {
+		t.Error("JSON output should contain 'outputs' field")
 	}
 }
 
