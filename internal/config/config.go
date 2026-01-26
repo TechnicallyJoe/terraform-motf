@@ -156,7 +156,11 @@ func loadConfigFile(cfg *Config, configPath string, gitRoot string) (*Config, er
 		cleanPath = filepath.Join(wd, cleanPath)
 	}
 
-	// Verify the file exists and is a regular file (not a directory or symlink)
+	// Verify the file exists and is a regular file.
+	// Symlinks are intentionally rejected here to:
+	//   - Avoid config files resolving outside the expected repo/git root via symlink chains.
+	//   - Keep path resolution predictable for features that derive other paths from the config location.
+	//   - Reduce the risk of TOCTOU-style issues where a symlink target changes between validation and use.
 	info, err := os.Lstat(cleanPath)
 	if err != nil {
 		return nil, fmt.Errorf("failed to access config file: %w", err)
