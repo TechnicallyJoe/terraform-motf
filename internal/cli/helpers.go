@@ -4,10 +4,63 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"runtime/debug"
 	"strings"
 
 	"github.com/TechnicallyJoe/terraform-motf/internal/finder"
 )
+
+// readBuildInfo is a variable for testing; defaults to debug.ReadBuildInfo
+var readBuildInfo = debug.ReadBuildInfo
+
+// effectiveVersion returns version, commit, and date, preferring ldflags
+// values but falling back to Go build info when defaults are present.
+func effectiveVersion() (ver, com, dat string) {
+	ver, com, dat = version, commit, date
+
+	info, ok := readBuildInfo()
+	if !ok {
+		return
+	}
+
+	ver = resolveVersion(ver, info.Main.Version)
+	com, dat = resolveVCSInfo(com, dat, info.Settings)
+	return
+}
+
+// resolveVersion returns the module version if ldflags version is default.
+func resolveVersion(current, moduleVersion string) string {
+	if current != "dev" {
+		return current
+	}
+	if moduleVersion != "" && moduleVersion != "(devel)" {
+		return moduleVersion
+	}
+	return current
+}
+
+// resolveVCSInfo extracts commit and date from VCS build settings.
+func resolveVCSInfo(com, dat string, settings []debug.BuildSetting) (string, string) {
+	var modified bool
+	for _, s := range settings {
+		switch s.Key {
+		case "vcs.revision":
+			if com == "none" && s.Value != "" {
+				com = s.Value
+			}
+		case "vcs.time":
+			if dat == "unknown" && s.Value != "" {
+				dat = s.Value
+			}
+		case "vcs.modified":
+			modified = s.Value == "true"
+		}
+	}
+	if modified && com != "none" {
+		com += " (modified)"
+	}
+	return com, dat
+}
 
 // getBasePath returns the base path for module discovery based on cfg.Root
 func getBasePath() (string, error) {
