@@ -36,13 +36,7 @@ func runDescribe(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
-	// Get the root path for relative path display
-	rootPath := ""
-	if cfg != nil {
-		rootPath = cfg.Root
-	}
-
-	schema, err := terraform.LoadModuleSchema(targetPath, rootPath)
+	schema, err := terraform.LoadModuleSchema(targetPath, getRoot())
 	if err != nil {
 		return fmt.Errorf("failed to parse module: %w", err)
 	}
@@ -90,7 +84,7 @@ func printSchema(cmd *cobra.Command, schema *terraform.ModuleSchema) {
 		cmd.Println("\nVariables:")
 		cmd.Printf("  %-25s %-15s %-15s %s\n", "NAME", "TYPE", "DEFAULT", "DESCRIPTION")
 		for _, v := range schema.Variables {
-			defaultStr := formatDefault(v.Default, v.Required)
+			defaultStr := v.DefaultString()
 			descLines := wrapText(v.Description, 60)
 
 			// First line with all columns
@@ -132,36 +126,6 @@ func printSchema(cmd *cobra.Command, schema *terraform.ModuleSchema) {
 				cmd.Printf("  %-25s %s\n", "", descLines[i])
 			}
 		}
-	}
-}
-
-func formatDefault(defaultVal any, required bool) string {
-	if required {
-		return "(required)"
-	}
-	if defaultVal == nil {
-		return "null"
-	}
-	switch v := defaultVal.(type) {
-	case string:
-		if v == "" {
-			return `""`
-		}
-		return fmt.Sprintf(`"%s"`, v)
-	case bool:
-		return fmt.Sprintf("%t", v)
-	case float64:
-		return fmt.Sprintf("%g", v)
-	default:
-		// For complex types (maps, lists), use JSON
-		if b, err := json.Marshal(v); err == nil {
-			s := string(b)
-			if len(s) > 12 {
-				return s[:12] + "..."
-			}
-			return s
-		}
-		return fmt.Sprintf("%v", v)
 	}
 }
 
