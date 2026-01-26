@@ -64,12 +64,17 @@ func findGitRoot(startDir string) string {
 }
 
 // Load searches for .motf.yml starting from startDir and walking up the directory tree
-// until it reaches the Git repository root
-func Load(startDir string) (*Config, error) {
+// until it reaches the Git repository root. If configPath is provided, it loads that file directly.
+func Load(startDir string, configPath string) (*Config, error) {
 	cfg := DefaultConfig()
 
 	// Find the git root first - this will be our default Root value
 	gitRoot := findGitRoot(startDir)
+
+	// If explicit config path provided, use it directly
+	if configPath != "" {
+		return loadConfigFile(cfg, configPath, gitRoot)
+	}
 
 	// Walk up the directory tree looking for .motf.yml
 	dir := startDir
@@ -133,5 +138,41 @@ func Load(startDir string) (*Config, error) {
 
 	// No config file found, set Root to git root and return defaults
 	cfg.Root = gitRoot
+	return cfg, nil
+}
+
+// loadConfigFile loads and validates a config file at the given path
+func loadConfigFile(cfg *Config, configPath string, gitRoot string) (*Config, error) {
+	data, err := os.ReadFile(configPath) //nolint:gosec // configPath is user-provided
+	if err != nil {
+		return nil, fmt.Errorf("failed to read config file: %w", err)
+	}
+
+	if err := yaml.Unmarshal(data, cfg); err != nil {
+		return nil, fmt.Errorf("failed to parse config file: %w", err)
+	}
+
+	// Validate binary
+	if cfg.Binary != "terraform" && cfg.Binary != "tofu" {
+		return nil, fmt.Errorf("invalid binary '%s' in config: must be 'terraform' or 'tofu'", cfg.Binary)
+	}
+
+	// Ensure Test config has defaults if not set
+	if cfg.Test == nil {
+		cfg.Test = &TestConfig{Engine: "terratest", Args: ""}
+	} else if cfg.Test.Engine == "" {
+		cfg.Test.Engine = "terratest"
+	}
+
+	cfg.ConfigPath = configPath
+
+	// Resolve Root relative to config file directory
+	dir := filepath.Dir(configPath)
+	if cfg.Root == "" {
+		cfg.Root = gitRoot
+	} else if !filepath.IsAbs(cfg.Root) {
+		cfg.Root = filepath.Join(dir, cfg.Root)
+	}
+
 	return cfg, nil
 }
