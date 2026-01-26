@@ -66,6 +66,9 @@ func printSchema(cmd *cobra.Command, schema *terraform.ModuleSchema) {
 		cmd.Printf("\nTerraform: %s\n", schema.TerraformVersion)
 	}
 
+	// Example module block
+	printExample(cmd, schema)
+
 	// Providers table
 	if len(schema.Providers) > 0 {
 		cmd.Println("\nProviders:")
@@ -84,6 +87,7 @@ func printSchema(cmd *cobra.Command, schema *terraform.ModuleSchema) {
 		cmd.Println("\nVariables:")
 		cmd.Printf("  %-25s %-15s %-15s %s\n", "NAME", "TYPE", "DEFAULT", "DESCRIPTION")
 		for _, v := range schema.Variables {
+			typeStr := normalizeType(v.Type)
 			defaultStr := v.DefaultString()
 			descLines := wrapText(v.Description, 60)
 
@@ -92,7 +96,7 @@ func printSchema(cmd *cobra.Command, schema *terraform.ModuleSchema) {
 			if len(descLines) > 0 {
 				firstDesc = descLines[0]
 			}
-			cmd.Printf("  %-25s %-15s %-15s %s\n", truncate(v.Name, 25), truncate(v.Type, 15), truncate(defaultStr, 15), firstDesc)
+			cmd.Printf("  %-25s %-15s %-15s %s\n", truncate(v.Name, 25), truncate(typeStr, 15), truncate(defaultStr, 15), firstDesc)
 
 			// Continuation lines for description
 			for i := 1; i < len(descLines); i++ {
@@ -127,6 +131,60 @@ func printSchema(cmd *cobra.Command, schema *terraform.ModuleSchema) {
 			}
 		}
 	}
+}
+
+func printExample(cmd *cobra.Command, schema *terraform.ModuleSchema) {
+	// Only show example if there are required variables
+	hasRequired := false
+	for _, v := range schema.Variables {
+		if v.Required {
+			hasRequired = true
+			break
+		}
+	}
+	if !hasRequired {
+		return
+	}
+
+	cmd.Println("\nExample:")
+	cmd.Printf("  module \"%s\" {\n", schema.Name)
+	cmd.Printf("    source = \"%s\"\n", schema.Path)
+
+	// Find the longest required variable name for alignment
+	maxLen := 0
+	for _, v := range schema.Variables {
+		if v.Required && len(v.Name) > maxLen {
+			maxLen = len(v.Name)
+		}
+	}
+
+	// Print required variables
+	cmd.Println()
+	for _, v := range schema.Variables {
+		if v.Required {
+			cmd.Printf("    %-*s = %s\n", maxLen, v.Name, v.EmptyValueForType())
+		}
+	}
+
+	cmd.Println("  }")
+}
+
+// normalizeType simplifies complex type definitions for display in tables.
+// Complex types like object({...}) and tuple([...]) are simplified to just show the wrapper.
+func normalizeType(t string) string {
+	t = strings.TrimSpace(t)
+
+	// Simplify object types to object({...})
+	if strings.HasPrefix(t, "object(") {
+		return "object({...})"
+	}
+
+	// Simplify tuple types to tuple([...])
+	if strings.HasPrefix(t, "tuple(") {
+		return "tuple([...])"
+	}
+
+	return t
 }
 
 func truncate(s string, maxLen int) string {

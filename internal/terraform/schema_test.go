@@ -155,3 +155,60 @@ variable "required_a" {
 		}
 	}
 }
+
+func TestVariableInfo_EmptyValueForType(t *testing.T) {
+	tests := []struct {
+		name     string
+		tfType   string
+		expected string
+	}{
+		{"string", "string", `""`},
+		{"empty type defaults to string", "", `""`},
+		{"number", "number", "0"},
+		{"bool", "bool", "false"},
+		{"list", "list(string)", "[]"},
+		{"list any", "list(any)", "[]"},
+		{"set", "set(string)", "[]"},
+		{"map", "map(string)", "{}"},
+		{"object", "object({name=string})", "{}"},
+		{"unknown", "tuple", "null"},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			v := VariableInfo{Type: tt.tfType}
+			got := v.EmptyValueForType()
+			if got != tt.expected {
+				t.Errorf("EmptyValueForType() = %q, want %q", got, tt.expected)
+			}
+		})
+	}
+}
+
+func TestVariableInfo_FullDefaultString(t *testing.T) {
+	tests := []struct {
+		name     string
+		defVal   any
+		expected string
+	}{
+		{"nil", nil, "null"},
+		{"empty string", "", `""`},
+		{"string", "hello", `"hello"`},
+		{"bool true", true, "true"},
+		{"bool false", false, "false"},
+		{"number", float64(42), "42"},
+		{"float", float64(3.14), "3.14"},
+		{"list", []any{"a", "b"}, `["a","b"]`},
+		{"map", map[string]any{"key": "value"}, `{"key":"value"}`},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			v := VariableInfo{Default: tt.defVal}
+			got := v.FullDefaultString()
+			if got != tt.expected {
+				t.Errorf("FullDefaultString() = %q, want %q", got, tt.expected)
+			}
+		})
+	}
+}

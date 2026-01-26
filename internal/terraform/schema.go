@@ -26,6 +26,7 @@ type VariableInfo struct {
 }
 
 // DefaultString returns a formatted string representation of the variable's default value.
+// Complex types (objects, maps, lists) are simplified for table display.
 func (v VariableInfo) DefaultString() string {
 	if v.Required {
 		return "(required)"
@@ -43,16 +44,74 @@ func (v VariableInfo) DefaultString() string {
 		return fmt.Sprintf("%t", val)
 	case float64:
 		return fmt.Sprintf("%g", val)
+	case []any:
+		if len(val) == 0 {
+			return "[]"
+		}
+		return "[...]"
+	case map[string]any:
+		if len(val) == 0 {
+			return "{}"
+		}
+		return "{...}"
 	default:
-		// For complex types (maps, lists), use JSON
+		// For other complex types, check if it's a slice or map
 		if b, err := json.Marshal(val); err == nil {
 			s := string(b)
-			if len(s) > 12 {
-				return s[:12] + "..."
+			if s == "[]" || s == "{}" {
+				return s
 			}
-			return s
+			if strings.HasPrefix(s, "[") {
+				return "[...]"
+			}
+			if strings.HasPrefix(s, "{") {
+				return "{...}"
+			}
 		}
 		return fmt.Sprintf("%v", val)
+	}
+}
+
+// FullDefaultString returns the complete default value without truncation.
+// Used for generating example module blocks.
+func (v VariableInfo) FullDefaultString() string {
+	if v.Default == nil {
+		return "null"
+	}
+	switch val := v.Default.(type) {
+	case string:
+		if val == "" {
+			return `""`
+		}
+		return fmt.Sprintf(`"%s"`, val)
+	case bool:
+		return fmt.Sprintf("%t", val)
+	case float64:
+		return fmt.Sprintf("%g", val)
+	default:
+		// For complex types, format as HCL-like representation
+		if b, err := json.Marshal(val); err == nil {
+			return string(b)
+		}
+		return fmt.Sprintf("%v", val)
+	}
+}
+
+// EmptyValueForType returns an appropriate placeholder value for the given Terraform type.
+func (v VariableInfo) EmptyValueForType() string {
+	switch {
+	case v.Type == "string" || v.Type == "":
+		return `""`
+	case v.Type == "number":
+		return "0"
+	case v.Type == "bool":
+		return "false"
+	case strings.HasPrefix(v.Type, "list") || strings.HasPrefix(v.Type, "set"):
+		return "[]"
+	case strings.HasPrefix(v.Type, "map") || strings.HasPrefix(v.Type, "object"):
+		return "{}"
+	default:
+		return "null"
 	}
 }
 
