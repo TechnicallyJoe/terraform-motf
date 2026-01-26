@@ -197,7 +197,7 @@ func loadConfigFile(cfg *Config, configPath string, gitRoot string) (*Config, er
 	if cfg.Root == "" {
 		cfg.Root = gitRoot
 	} else if !filepath.IsAbs(cfg.Root) {
-		cfg.Root = filepath.Join(dir, cfg.Root)
+		cfg.Root = filepath.Clean(filepath.Join(dir, cfg.Root))
 	}
 
 	return cfg, nil
