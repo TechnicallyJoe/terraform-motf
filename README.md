@@ -7,13 +7,13 @@ A command-line tool for working with Terraform monorepos. `motf` (pronounced `mo
 ## Features
 
 - **Simple commands**: Run `init`, `fmt`, `validate`, and `test` on components, bases, or projects
-- **Module inspection**: Use `show` to view detailed module information including submodules, tests, and examples
+- **Module inspection**: Use `get` to view detailed module information including submodules, tests, and examples
 - **Example targeting**: Run commands on specific examples within modules using the `-e` flag
 - **Configurable**: Support for both `terraform` and `tofu` via `.motf.yml`
 - **Test support**: Run terratests or native terraform/tofu tests on modules
 - **Smart discovery**: Recursively finds modules in nested subdirectories
 - **Clash detection**: Warns when multiple modules share the same name
-- **JSON output**: Use `--json` flag with `list` and `show` for scripting
+- **JSON output**: Use `--json` flag with `list` and `get` for scripting
 
 ## Installation
 
@@ -98,13 +98,13 @@ Test configuration:
   Args:   (none)
 ```
 
-#### `motf show`
-Show detailed information about a module:
+#### `motf get`
+Get detailed information about a module:
 
 ```bash
-motf show storage-account      # Show details for storage-account
-motf show --path ./my-module   # Show details for module at explicit path
-motf show storage-account --json  # Output as JSON for scripting
+motf get storage-account      # Get details for storage-account
+motf get --path ./my-module   # Get details for module at explicit path
+motf get storage-account --json  # Output as JSON for scripting
 ```
 
 Output:
@@ -143,7 +143,7 @@ motf list --json             # Output as JSON for scripting
 | `--example` | `-e` | Run on a specific example instead of the module (for `init`, `fmt`, `val`) |
 | `--args` | `-a` | Extra arguments to pass to terraform/tofu (can be specified multiple times) |
 | `--search` | `-s` | Filter modules using wildcards (for `list`) |
-| `--json` | | Output in JSON format (for `list` and `show`) |
+| `--json` | | Output in JSON format (for `list` and `get`) |
 | `--version` | `-v` | Show version |
 | `--help` | `-h` | Show help |
 
@@ -175,9 +175,9 @@ motf init spacelift-modules
 # Pass extra arguments
 motf init storage-account -a -upgrade -a -reconfigure
 
-# Show module details
-motf show storage-account
-motf show storage-account --json
+# Get module details
+motf get storage-account
+motf get storage-account --json
 
 # List all modules
 motf list

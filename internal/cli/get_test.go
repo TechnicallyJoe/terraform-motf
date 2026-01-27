@@ -522,7 +522,7 @@ func TestGetModuleDetails_EmptyDirectories(t *testing.T) {
 	}
 }
 
-func TestShowCommand_Integration(t *testing.T) {
+func TestGetCommand_Integration(t *testing.T) {
 	tmpDir := t.TempDir()
 
 	cfg = &config.Config{Root: "", Binary: "terraform"}
@@ -588,7 +588,7 @@ func TestShowCommand_Integration(t *testing.T) {
 	}
 }
 
-// Edge case tests for show command
+// Edge case tests for get command
 
 func TestGetModuleDetails_NoSubdirectories(t *testing.T) {
 	tmpDir := t.TempDir()
