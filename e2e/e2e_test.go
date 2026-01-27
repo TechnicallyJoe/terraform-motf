@@ -10,14 +10,6 @@ import (
 	"testing"
 )
 
-// skipIfNoTerraform skips the test if terraform is not installed
-func skipIfNoTerraform(t *testing.T) {
-	t.Helper()
-	if _, err := exec.LookPath("terraform"); err != nil {
-		t.Skip("terraform not found in PATH, skipping e2e test")
-	}
-}
-
 // skipIfNoTofu skips the test if tofu is not installed
 func skipIfNoTofu(t *testing.T) {
 	t.Helper()
@@ -90,8 +82,6 @@ func cleanupTerraformFiles(t *testing.T) {
 }
 
 func TestE2E_FmtComponent(t *testing.T) {
-	skipIfNoTerraform(t)
-
 	motfBinary := buildMotf(t)
 	demoPath := getDemoPath(t)
 
@@ -110,8 +100,6 @@ func TestE2E_FmtComponent(t *testing.T) {
 }
 
 func TestE2E_FmtNestedComponent(t *testing.T) {
-	skipIfNoTerraform(t)
-
 	motfBinary := buildMotf(t)
 	demoPath := getDemoPath(t)
 
@@ -129,7 +117,6 @@ func TestE2E_FmtNestedComponent(t *testing.T) {
 }
 
 func TestE2E_InitComponent(t *testing.T) {
-	skipIfNoTerraform(t)
 	t.Cleanup(func() { cleanupTerraformFiles(t) })
 
 	motfBinary := buildMotf(t)
@@ -153,7 +140,6 @@ func TestE2E_InitComponent(t *testing.T) {
 }
 
 func TestE2E_InitBase(t *testing.T) {
-	skipIfNoTerraform(t)
 	t.Cleanup(func() { cleanupTerraformFiles(t) })
 
 	motfBinary := buildMotf(t)
@@ -177,7 +163,6 @@ func TestE2E_InitBase(t *testing.T) {
 }
 
 func TestE2E_InitProject(t *testing.T) {
-	skipIfNoTerraform(t)
 	t.Cleanup(func() { cleanupTerraformFiles(t) })
 
 	motfBinary := buildMotf(t)
@@ -201,7 +186,6 @@ func TestE2E_InitProject(t *testing.T) {
 }
 
 func TestE2E_ValidateComponent(t *testing.T) {
-	skipIfNoTerraform(t)
 	t.Cleanup(func() { cleanupTerraformFiles(t) })
 
 	motfBinary := buildMotf(t)
@@ -227,7 +211,6 @@ func TestE2E_ValidateComponent(t *testing.T) {
 }
 
 func TestE2E_ValidateBase(t *testing.T) {
-	skipIfNoTerraform(t)
 	t.Cleanup(func() { cleanupTerraformFiles(t) })
 
 	motfBinary := buildMotf(t)
@@ -247,7 +230,6 @@ func TestE2E_ValidateBase(t *testing.T) {
 }
 
 func TestE2E_TestComponent(t *testing.T) {
-	skipIfNoTerraform(t)
 	t.Cleanup(func() { cleanupTerraformFiles(t) })
 
 	motfBinary := buildMotf(t)
@@ -289,7 +271,6 @@ func TestE2E_TestComponent(t *testing.T) {
 }
 
 func TestE2E_ExplicitPath(t *testing.T) {
-	skipIfNoTerraform(t)
 	t.Cleanup(func() { cleanupTerraformFiles(t) })
 
 	motfBinary := buildMotf(t)
@@ -403,8 +384,6 @@ func TestE2E_DescribeCommand_JSON(t *testing.T) {
 }
 
 func TestE2E_ArgsFlag(t *testing.T) {
-	skipIfNoTerraform(t)
-
 	motfBinary := buildMotf(t)
 	demoPath := getDemoPath(t)
 
@@ -420,7 +399,6 @@ func TestE2E_ArgsFlag(t *testing.T) {
 }
 
 func TestE2E_MultipleArgsFlag(t *testing.T) {
-	skipIfNoTerraform(t)
 	t.Cleanup(func() { cleanupTerraformFiles(t) })
 
 	motfBinary := buildMotf(t)
@@ -549,7 +527,6 @@ func TestE2E_SubcommandHelp(t *testing.T) {
 }
 
 func TestE2E_ValidateAlias(t *testing.T) {
-	skipIfNoTerraform(t)
 	t.Cleanup(func() { cleanupTerraformFiles(t) })
 
 	motfBinary := buildMotf(t)
@@ -569,8 +546,6 @@ func TestE2E_ValidateAlias(t *testing.T) {
 }
 
 func TestE2E_WorksFromSubdirectory(t *testing.T) {
-	skipIfNoTerraform(t)
-
 	motfBinary := buildMotf(t)
 	demoPath := getDemoPath(t)
 
@@ -670,7 +645,6 @@ func TestE2E_TofuInit(t *testing.T) {
 
 // TestE2E_PlanNamingComponent tests plan on the naming component which has no cloud dependencies
 func TestE2E_PlanNamingComponent(t *testing.T) {
-	skipIfNoTerraform(t)
 	t.Cleanup(func() { cleanupTerraformFiles(t) })
 
 	motfBinary := buildMotf(t)
@@ -703,7 +677,6 @@ func TestE2E_PlanNamingComponent(t *testing.T) {
 
 // TestE2E_PlanWithInitFlag tests plan with -i flag to run init first
 func TestE2E_PlanWithInitFlag(t *testing.T) {
-	skipIfNoTerraform(t)
 	t.Cleanup(func() { cleanupTerraformFiles(t) })
 
 	motfBinary := buildMotf(t)

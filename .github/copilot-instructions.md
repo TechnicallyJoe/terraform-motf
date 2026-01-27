@@ -79,7 +79,7 @@ return fmt.Errorf("failed to read config file: %s", err.Error())
 - Test complete CLI commands from start to finish
 - Build the binary fresh via `buildMotf(t)` helper
 - Run against the `demo/` directory as real-world fixture
-- Skip tests requiring terraform: `skipIfNoTerraform(t)`
+- Skip tests requiring tofu: `skipIfNoTofu(t)}}`
 
 ### Demo Directory
 
