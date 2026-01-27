@@ -101,7 +101,7 @@ func TestRootCmd_HasArgsFlag(t *testing.T) {
 
 func TestAllCommandsRegistered(t *testing.T) {
 	commands := rootCmd.Commands()
-	expectedCmds := []string{"init", "fmt", "val", "test", "list", "show", "config"}
+	expectedCmds := []string{"init", "fmt", "val", "test", "list", "get", "config"}
 
 	cmdMap := make(map[string]bool)
 	for _, cmd := range commands {

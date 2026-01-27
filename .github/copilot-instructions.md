@@ -10,7 +10,7 @@
 cmd/
   motf/        → Main entrypoint (imports internal/cli)
 internal/
-  cli/         → Cobra CLI commands (root.go, init.go, fmt.go, validate.go, test.go, list.go, show.go)
+  cli/         → Cobra CLI commands (root.go, init.go, fmt.go, validate.go, test.go, list.go, get.go)
   config/      → .motf.yml configuration loading and validation
   finder/      → Module discovery via recursive directory walking
   terraform/   → Terraform/tofu command execution wrapper
@@ -46,7 +46,7 @@ cd e2e && go test -v
 
 # Quick manual test against demo
 ./motf list          # from repo root with demo/ present
-./motf show storage-account
+./motf get storage-account
 ```
 
 ## Code Conventions

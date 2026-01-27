@@ -12,29 +12,29 @@ import (
 	"github.com/spf13/cobra"
 )
 
-// showJsonFlag controls JSON output for show command
-var showJsonFlag bool
+// getJsonFlag controls JSON output for get command
+var getJsonFlag bool
 
-// showCmd represents the show command
-var showCmd = &cobra.Command{
-	Use:   "show [module-name]",
-	Short: "Show details about a component, base, or project",
-	Long: `Show detailed information about a module including its type, path,
+// getCmd represents the get command
+var getCmd = &cobra.Command{
+	Use:   "get [module-name]",
+	Short: "Get details about a component, base, or project",
+	Long: `Get detailed information about a module including its type, path,
 whether it has submodules, tests, examples, and its Spacelift registry version.
 
 Use the --json flag to output in JSON format for scripting.
 
 Examples:
-  motf show storage-account      # Show details for storage-account
-  motf show --path ./my-module   # Show details for module at explicit path
-  motf show storage-account --json  # Output as JSON`,
+  motf get storage-account      # Get details for storage-account
+  motf get --path ./my-module   # Get details for module at explicit path
+  motf get storage-account --json  # Output as JSON`,
 	Args: cobra.MaximumNArgs(1),
-	RunE: runShow,
+	RunE: runGet,
 }
 
 func init() {
-	showCmd.Flags().BoolVar(&showJsonFlag, "json", false, "Output in JSON format")
-	rootCmd.AddCommand(showCmd)
+	getCmd.Flags().BoolVar(&getJsonFlag, "json", false, "Output in JSON format")
+	rootCmd.AddCommand(getCmd)
 }
 
 // ModuleDetails contains detailed information about a module
@@ -57,7 +57,7 @@ type ItemInfo struct {
 	Path string `json:"path"`
 }
 
-func runShow(cmd *cobra.Command, args []string) error {
+func runGet(cmd *cobra.Command, args []string) error {
 	targetPath, err := resolveTargetPath(args)
 	if err != nil {
 		return err
@@ -68,7 +68,7 @@ func runShow(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
-	if showJsonFlag {
+	if getJsonFlag {
 		return printModuleDetailsJSON(details)
 	}
 
