@@ -3,7 +3,7 @@ name: Documentation
 on:
   push:
     branches:
-      - joos/wiki
+      - master
     paths:
       - "docs/**"
   repository_dispatch:
