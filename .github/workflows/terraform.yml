@@ -18,6 +18,22 @@ jobs:
         with:
           fetch-depth: 0  # Fetch all history for git diff
 
+      - name: Fetch base branch
+        run: |
+          git fetch origin ${{ github.base_ref || 'master' }}:refs/remotes/origin/${{ github.base_ref || 'master' }}
+
+      - name: Debug git state
+        run: |
+          echo "=== Git refs ==="
+          git branch -a
+          echo "=== Git remotes ==="
+          git remote -v
+          echo "=== HEAD ==="
+          git rev-parse HEAD
+          echo "=== Base ref ==="
+          git rev-parse origin/${{ github.base_ref || 'master' }} || echo "Could not resolve base ref"
+
+
       - name: Install Go
         uses: actions/setup-go@v6
         with:
