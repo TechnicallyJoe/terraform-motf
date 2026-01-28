@@ -74,10 +74,10 @@ func setupCleanGitRepo(t *testing.T) string {
 	// Configure git user for commits
 	cmd = exec.Command("git", "config", "user.email", "test@example.com")
 	cmd.Dir = tmpDir
-	cmd.Run()
+	_ = cmd.Run()
 	cmd = exec.Command("git", "config", "user.name", "Test User")
 	cmd.Dir = tmpDir
-	cmd.Run()
+	_ = cmd.Run()
 
 	// Create polylith structure with a module
 	moduleDir := filepath.Join(tmpDir, "components", "test-module")
@@ -91,7 +91,7 @@ func setupCleanGitRepo(t *testing.T) string {
 	// Commit the initial structure
 	cmd = exec.Command("git", "add", "-A")
 	cmd.Dir = tmpDir
-	cmd.Run()
+	_ = cmd.Run()
 	cmd = exec.Command("git", "commit", "-m", "initial")
 	cmd.Dir = tmpDir
 	if output, err := cmd.CombinedOutput(); err != nil {

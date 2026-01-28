@@ -119,17 +119,14 @@ func detectChangedModules(baseRef string) ([]ModuleInfo, error) {
 	}
 
 	// Convert paths to module info with validation
-	modules, err := resolveChangedModules(basePath, repoRoot, changedModulePaths)
-	if err != nil {
-		return nil, err
-	}
+	modules := resolveChangedModules(basePath, repoRoot, changedModulePaths)
 
 	return modules, nil
 }
 
 // resolveChangedModules validates that changed paths are actual modules with .tf files
 // and returns module info for each
-func resolveChangedModules(basePath, repoRoot string, changedPaths []string) ([]ModuleInfo, error) {
+func resolveChangedModules(basePath, repoRoot string, changedPaths []string) []ModuleInfo {
 	var modules []ModuleInfo
 	seen := make(map[string]bool)
 
@@ -180,7 +177,7 @@ func resolveChangedModules(basePath, repoRoot string, changedPaths []string) ([]
 		return modules[i].Path < modules[j].Path
 	})
 
-	return modules, nil
+	return modules
 }
 
 // findParentModule walks up the directory tree to find a parent that contains .tf files

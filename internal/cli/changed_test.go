@@ -141,10 +141,7 @@ func TestResolveChangedModules(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			modules, err := resolveChangedModules(tmpDir, tmpDir, tt.changedPaths)
-			if err != nil {
-				t.Fatalf("unexpected error: %v", err)
-			}
+			modules := resolveChangedModules(tmpDir, tmpDir, tt.changedPaths)
 
 			var gotNames []string
 			for _, m := range modules {
@@ -182,11 +179,11 @@ func TestOutputChangedModules_EmptyJSON(t *testing.T) {
 		t.Fatalf("unexpected error: %v", err)
 	}
 
-	w.Close()
+	_ = w.Close()
 	os.Stdout = oldStdout
 
 	var buf bytes.Buffer
-	buf.ReadFrom(r)
+	_, _ = buf.ReadFrom(r)
 	output := strings.TrimSpace(buf.String())
 
 	if output != "[]" {
@@ -216,11 +213,11 @@ func TestOutputChangedModules_NamesOnly(t *testing.T) {
 		t.Fatalf("unexpected error: %v", err)
 	}
 
-	w.Close()
+	_ = w.Close()
 	os.Stdout = oldStdout
 
 	var buf bytes.Buffer
-	buf.ReadFrom(r)
+	_, _ = buf.ReadFrom(r)
 	output := strings.TrimSpace(buf.String())
 	lines := strings.Split(output, "\n")
 
