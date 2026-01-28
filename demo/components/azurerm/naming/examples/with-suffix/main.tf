@@ -17,9 +17,9 @@ module "naming_with_suffix" {
 output "default_names" {
   description = "Default generated names"
   value = {
-    resource_group  = module.naming.resource_group_name
-    storage_account = module.naming.storage_account_name
-    key_vault       = module.naming.key_vault_name
+    resource_group  = module.naming.resource_group.name
+    storage_account = module.naming.storage_account.name
+    key_vault       = module.naming.key_vault.name
   }
 }
 

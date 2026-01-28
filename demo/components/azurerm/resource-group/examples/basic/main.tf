@@ -20,7 +20,7 @@ module "naming" {
 module "resource_group" {
   source = "../../"
 
-  name     = module.naming.resource_group_name
+  name     = module.naming.resource_group.name
   location = "westeurope"
 
   tags = {
