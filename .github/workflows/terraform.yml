@@ -10,8 +10,8 @@ permissions:
   contents: read
 
 jobs:
-  terraform-fmt:
-    name: Terraform fmt
+  terraform-ci:
+    name: Terraform CI
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
@@ -33,8 +33,8 @@ jobs:
 
       - name: Run Terraform fmt check on changed modules
         run: |
-          ./motf fmt --changed --args "--check"
+          ./motf fmt --args "--check" --changed --ref origin/HEAD
 
       - name: Run Terraform init and validate on changed modules
         run: |
-          ./motf validate --init --changed
+          ./motf validate --init --changed --ref origin/HEAD
