@@ -10,9 +10,12 @@
 cmd/
   motf/        → Main entrypoint (imports internal/cli)
 internal/
-  cli/         → Cobra CLI commands (root.go, init.go, fmt.go, validate.go, test.go, list.go, get.go)
+  cli/         → Cobra CLI commands (root.go, init.go, fmt.go, validate.go, test.go, plan.go, list.go, get.go, describe.go, changed.go, task.go)
   config/      → .motf.yml configuration loading and validation
   finder/      → Module discovery via recursive directory walking
+  git/         → Git operations for change detection (uses go-git library)
+  spacelift/   → Spacelift stack configuration discovery
+  tasks/       → Custom task configuration loading from .motf.yml
   terraform/   → Terraform/tofu command execution wrapper
 demo/          → Test fixture with polylith structure (components/, bases/, projects/)
 e2e/           → End-to-end tests that build the binary and run against demo/
@@ -22,6 +25,8 @@ e2e/           → End-to-end tests that build the binary and run against demo/
 1. `internal/cli/root.go` → Loads config via `internal/config`, creates `terraform.Runner`
 2. `internal/cli/helpers.go` → `resolveTargetPath()` uses `internal/finder` to locate modules by name
 3. `internal/terraform/terraform.go` → Executes terraform/tofu with configured binary
+4. `internal/git/diff.go` → Detects changed modules via go-git (committed + uncommitted changes)
+5. `internal/cli/changed_runner.go` → Runs commands on changed modules when `--changed` flag is used
 
 ### Module Types (defined in `internal/cli/types.go`)
 - **components**: Reusable Terraform modules (e.g., `storage-account`)
@@ -80,6 +85,7 @@ return fmt.Errorf("failed to read config file: %s", err.Error())
 - Build the binary fresh via `buildMotf(t)` helper
 - Run against the `demo/` directory as real-world fixture
 - Skip tests requiring tofu: `skipIfNoTofu(t)`
+- For git-related tests, use `setupCleanGitRepo(t)` to create isolated git repositories
 
 ### Demo Directory
 
@@ -97,6 +103,7 @@ demo/
 
 **When to modify `demo/`:**
 - Adding a new command that needs a fixture to test against
+- Writing new e2e tests that require specific module setups
 - Testing edge cases (name clashes, nested directories, missing files)
 - Validating module discovery behavior
 
@@ -111,17 +118,27 @@ demo/
 - Config file: `.motf.yml` (optional, searched up to git root)
 - Valid binaries: `terraform` or `tofu` only
 - Test engines: `terratest` (runs `go test ./...`), `terraform`, or `tofu`
+- Custom tasks: defined in `.motf.yml` under `tasks:` key
+
+### Dependencies
+- **go-git** (`github.com/go-git/go-git/v5`): Pure Go git library for change detection
+- **cobra** (`github.com/spf13/cobra`): CLI framework
+- **yaml.v3** (`gopkg.in/yaml.v3`): YAML parsing for config
 
 ## Key Files Reference
 
 | File | Purpose |
-|------|---------||
+|------|---------|
 | [cmd/motf/main.go](cmd/motf/main.go) | Main entrypoint |
 | [internal/cli/root.go](internal/cli/root.go) | CLI root, global flags, config loading |
 | [internal/cli/helpers.go](internal/cli/helpers.go) | `resolveTargetPath()`, module type detection |
 | [internal/cli/types.go](internal/cli/types.go) | Constants for module dirs/types, `ModuleInfo` struct |
+| [internal/cli/changed.go](internal/cli/changed.go) | `motf changed` command implementation |
+| [internal/cli/changed_runner.go](internal/cli/changed_runner.go) | Helper for `--changed` flag on commands |
 | [internal/finder/finder.go](internal/finder/finder.go) | `FindModule()`, `ListAllModules()` |
-| [internal/terraform/terraform.go](internal/terraform/terraform.go) | `Runner` with `RunInit/Fmt/Validate/Test` |
+| [internal/git/diff.go](internal/git/diff.go) | Git change detection with go-git library |
+| [internal/tasks/tasks.go](internal/tasks/tasks.go) | Custom task loading from `.motf.yml` |
+| [internal/terraform/terraform.go](internal/terraform/terraform.go) | `Runner` with `RunInit/Fmt/Validate/Test/Plan` |
 | [demo/](demo/) | Test fixture - always test changes against this |
 
 ## Common Tasks
