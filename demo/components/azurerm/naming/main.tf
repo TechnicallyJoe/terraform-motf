@@ -17,7 +17,7 @@ output "storage_account_name" {
   value       = module.naming.storage_account.name
 }
 
-output "key_vault_name" {
+output "key_vault_names" {
   description = "Generated key vault name"
   value       = module.naming.key_vault.name
 }
