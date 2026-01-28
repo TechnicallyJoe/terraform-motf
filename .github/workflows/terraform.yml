@@ -18,22 +18,6 @@ jobs:
         with:
           fetch-depth: 0  # Fetch all history for git diff
 
-      - name: Fetch base branch
-        run: |
-          git fetch origin ${{ github.base_ref || 'master' }}:refs/remotes/origin/${{ github.base_ref || 'master' }}
-
-      - name: Debug git state
-        run: |
-          echo "=== Git refs ==="
-          git branch -a
-          echo "=== Git remotes ==="
-          git remote -v
-          echo "=== HEAD ==="
-          git rev-parse HEAD
-          echo "=== Base ref ==="
-          git rev-parse origin/${{ github.base_ref || 'master' }} || echo "Could not resolve base ref"
-
-
       - name: Install Go
         uses: actions/setup-go@v6
         with:
@@ -50,9 +34,11 @@ jobs:
           go build -o motf ./cmd/motf
 
       - name: Run Terraform fmt check on changed modules
+        working-directory: demo
         run: |
-          ./motf fmt --args "--check" --changed --ref origin/${{ github.base_ref || 'master' }}
+          ../motf fmt --args "--check" --changed --ref origin/${{ github.base_ref || 'master' }}
 
       - name: Run Terraform init and validate on changed modules
+        working-directory: demo
         run: |
-          ./motf validate --init --changed --ref origin/${{ github.base_ref || 'master' }}
+          ../motf validate --init --changed --ref origin/${{ github.base_ref || 'master' }}
