@@ -134,16 +134,78 @@ motf list -s *account*       # Filter with wildcards
 motf list --json             # Output as JSON for scripting
 ```
 
+#### `motf changed`
+List modules that have changed compared to a git ref (includes both committed and uncommitted changes):
+
+```bash
+motf changed                        # Compare against auto-detected default branch
+motf changed --ref origin/main      # Compare against origin/main
+motf changed --ref HEAD~5           # Compare against 5 commits ago
+motf changed --json                 # Output as JSON array
+motf changed --names                # Output only module names (one per line)
+```
+
+Output:
+```
+NAME             TYPE       PATH
+storage-account  component  components/azurerm/storage-account
+resource-group   component  components/azurerm/resource-group
+```
+
+The `--names` flag is useful for scripting:
+```bash
+# Run validate on each changed module
+for module in $(motf changed --names); do
+  motf validate "$module"
+done
+
+# Or with xargs
+motf changed --names | xargs -I {} motf fmt {}
+```
+
+### Running Commands on Changed Modules
+
+All runtime commands (`init`, `fmt`, `val`, `plan`, `test`) support the `--changed` flag to automatically run on modules with changes:
+
+```bash
+motf fmt --changed                  # Format all changed modules
+motf validate --changed             # Validate all changed modules
+motf init --changed                 # Init all changed modules
+motf plan --changed                 # Plan all changed modules
+motf test --changed                 # Test all changed modules
+
+# Combine with --ref to specify the comparison point
+motf validate --changed --ref origin/main
+motf fmt --changed --ref HEAD~3
+
+# Combine with other flags
+motf validate --changed -i          # Init then validate changed modules
+```
+
+This is particularly useful in CI pipelines to only run commands on affected modules:
+
+```yaml
+# GitHub Actions example
+- name: Validate changed modules
+  run: motf validate --changed --ref origin/${{ github.base_ref }}
+
+- name: Format check changed modules
+  run: motf fmt --changed --ref origin/${{ github.base_ref }} -a -check
+```
+
 ### Flags
 
 | Flag | Short | Description |
 |------|-------|-------------|
 | `--path` | | Explicit path (mutually exclusive with module name) |
-| `--init` | `-i` | Run init before the command (for `fmt` and `val`) |
-| `--example` | `-e` | Run on a specific example instead of the module (for `init`, `fmt`, `val`) |
+| `--init` | `-i` | Run init before the command (for `fmt`, `val`, `plan`) |
+| `--example` | `-e` | Run on a specific example instead of the module (for `init`, `fmt`, `val`, `plan`) |
+| `--changed` | | Run on modules with changes compared to `--ref` (for `init`, `fmt`, `val`, `plan`, `test`) |
+| `--ref` | | Git ref to compare against for `--changed` (default: auto-detect from origin/HEAD) |
 | `--args` | `-a` | Extra arguments to pass to terraform/tofu (can be specified multiple times) |
 | `--search` | `-s` | Filter modules using wildcards (for `list`) |
-| `--json` | | Output in JSON format (for `list` and `get`) |
+| `--names` | | Output only module names, one per line (for `changed`) |
+| `--json` | | Output in JSON format (for `list`, `get`, `changed`) |
 | `--version` | `-v` | Show version |
 | `--help` | `-h` | Show help |
 
@@ -182,6 +244,15 @@ motf get storage-account --json
 # List all modules
 motf list
 motf list -s *storage* --json
+
+# List changed modules
+motf changed
+motf changed --ref origin/main --names
+
+# Run commands on changed modules only
+motf fmt --changed
+motf validate --changed --ref origin/main
+motf init --changed -a -upgrade
 
 # Show version
 motf -v
