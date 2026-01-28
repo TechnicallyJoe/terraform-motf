@@ -22,8 +22,8 @@ func TestBasicExample(t *testing.T) {
 	// At the end of the test, run `terraform destroy` to clean up any resources that were created.
 	// defer terraform.Destroy(t, terraformOptions)
 
-	// This will run `terraform init` and `terraform plan` and fail the test if there are any errors.
-	terraform.InitAndPlan(t, terraformOptions)
+	// This will run `terraform init` and `terraform validate` and fail the test if there are any errors.
+	terraform.InitAndValidate(t, terraformOptions)
 
 	// Example output check (customize as needed) - Only works if apply is run.
 	// output := terraform.Output(t, terraformOptions, "resource_group_name")
