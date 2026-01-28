@@ -15,6 +15,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0  # Fetch all history for git diff
 
       - name: Install Go
         uses: actions/setup-go@v6
@@ -33,8 +35,8 @@ jobs:
 
       - name: Run Terraform fmt check on changed modules
         run: |
-          ./motf fmt --args "--check" --changed --ref origin/master
+          ./motf fmt --args "--check" --changed --ref origin/${{ github.base_ref || 'master' }}
 
       - name: Run Terraform init and validate on changed modules
         run: |
-          ./motf validate --init --changed --ref origin/master
+          ./motf validate --init --changed --ref origin/${{ github.base_ref || 'master' }}
