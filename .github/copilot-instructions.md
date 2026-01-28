@@ -52,6 +52,9 @@ cd e2e && go test -v
 # Quick manual test against demo
 ./motf list          # from repo root with demo/ present
 ./motf get storage-account
+
+# Linting test
+golangci-lint run
 ```
 
 ## Code Conventions
