@@ -19,6 +19,15 @@ Examples:
   motf test storage-account -a -timeout=30m    # Run tests with custom timeout`,
 	Args: cobra.MaximumNArgs(1),
 	RunE: func(cmd *cobra.Command, args []string) error {
+		if changedFlag {
+			if len(args) > 0 {
+				return cobra.MaximumNArgs(0)(cmd, args)
+			}
+			return runOnChangedModules(func(moduleAbsPath string) error {
+				return runner.RunTest(moduleAbsPath, argsFlag...)
+			})
+		}
+
 		targetPath, err := resolveTargetPath(args)
 		if err != nil {
 			return err
@@ -29,5 +38,7 @@ Examples:
 }
 
 func init() {
+	testCmd.Flags().BoolVar(&changedFlag, "changed", false, "Run on modules changed compared to --ref")
+	testCmd.Flags().StringVar(&refFlag, "ref", "", "Git ref for --changed (default: auto-detect from origin/HEAD)")
 	rootCmd.AddCommand(testCmd)
 }

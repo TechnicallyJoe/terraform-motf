@@ -29,6 +29,8 @@ var (
 	// Note: These are registered per-command but share state here for simplicity.
 	// Each command that uses these flags registers them in its own init().
 	initFlag    bool   // Run init before the command (fmt, validate)
+	changedFlag bool   // Run command against changed modules
+	refFlag     string // Ref for change detection (defaults to auto-detect)
 	searchFlag  string // Filter pattern for list command
 	exampleFlag string // Target a specific example instead of the module (init, fmt, validate)
 )

@@ -58,6 +58,49 @@ func buildMotf(t *testing.T) string {
 	return binaryPath
 }
 
+// setupCleanGitRepo creates a temp directory with a git repo and polylith structure for testing.
+// Returns the path to the temp directory.
+func setupCleanGitRepo(t *testing.T) string {
+	t.Helper()
+	tmpDir := t.TempDir()
+
+	// Initialize git repo
+	cmd := exec.Command("git", "init")
+	cmd.Dir = tmpDir
+	if output, err := cmd.CombinedOutput(); err != nil {
+		t.Fatalf("failed to init git repo: %v\nOutput: %s", err, output)
+	}
+
+	// Configure git user for commits
+	cmd = exec.Command("git", "config", "user.email", "test@example.com")
+	cmd.Dir = tmpDir
+	cmd.Run()
+	cmd = exec.Command("git", "config", "user.name", "Test User")
+	cmd.Dir = tmpDir
+	cmd.Run()
+
+	// Create polylith structure with a module
+	moduleDir := filepath.Join(tmpDir, "components", "test-module")
+	if err := os.MkdirAll(moduleDir, 0755); err != nil {
+		t.Fatalf("failed to create module dir: %v", err)
+	}
+	if err := os.WriteFile(filepath.Join(moduleDir, "main.tf"), []byte("terraform {}\n"), 0644); err != nil {
+		t.Fatalf("failed to write tf file: %v", err)
+	}
+
+	// Commit the initial structure
+	cmd = exec.Command("git", "add", "-A")
+	cmd.Dir = tmpDir
+	cmd.Run()
+	cmd = exec.Command("git", "commit", "-m", "initial")
+	cmd.Dir = tmpDir
+	if output, err := cmd.CombinedOutput(); err != nil {
+		t.Fatalf("failed to commit: %v\nOutput: %s", err, output)
+	}
+
+	return tmpDir
+}
+
 // cleanupTerraformFiles removes .terraform directories, lock files, and state files from demo
 func cleanupTerraformFiles(t *testing.T) {
 	t.Helper()
@@ -380,6 +423,105 @@ func TestE2E_DescribeCommand_JSON(t *testing.T) {
 	}
 	if _, ok := result["outputs"]; !ok {
 		t.Error("JSON output should contain 'outputs' field")
+	}
+}
+
+func TestE2E_ChangedCommand(t *testing.T) {
+	motfBinary := buildMotf(t)
+	tmpDir := setupCleanGitRepo(t)
+
+	// Run changed with ref HEAD (no commits to compare, no uncommitted changes)
+	cmd := exec.Command(motfBinary, "changed", "--ref", "HEAD")
+	cmd.Dir = tmpDir
+	output, err := cmd.CombinedOutput()
+	if err != nil {
+		t.Fatalf("motf changed failed: %v\nOutput: %s", err, output)
+	}
+
+	// Should output "No changed modules found" in a clean repo
+	if !strings.Contains(string(output), "No changed modules found") {
+		t.Errorf("expected 'No changed modules found' in clean repo, got: %s", output)
+	}
+}
+
+func TestE2E_ChangedCommand_JSON(t *testing.T) {
+	motfBinary := buildMotf(t)
+	tmpDir := setupCleanGitRepo(t)
+
+	// Run changed with --json flag
+	cmd := exec.Command(motfBinary, "changed", "--ref", "HEAD", "--json")
+	cmd.Dir = tmpDir
+	output, err := cmd.CombinedOutput()
+	if err != nil {
+		t.Fatalf("motf changed --json failed: %v\nOutput: %s", err, output)
+	}
+
+	// Should be valid JSON (empty array)
+	var result []interface{}
+	if err := json.Unmarshal(output, &result); err != nil {
+		t.Fatalf("changed --json output is not valid JSON: %v\nOutput: %s", err, output)
+	}
+
+	// Should be empty in a clean repo
+	if len(result) != 0 {
+		t.Errorf("expected empty array in clean repo, got: %v", result)
+	}
+}
+
+func TestE2E_ChangedCommand_Names(t *testing.T) {
+	motfBinary := buildMotf(t)
+	tmpDir := setupCleanGitRepo(t)
+
+	// Run changed with --names flag
+	cmd := exec.Command(motfBinary, "changed", "--ref", "HEAD", "--names")
+	cmd.Dir = tmpDir
+	output, err := cmd.CombinedOutput()
+	if err != nil {
+		t.Fatalf("motf changed --names failed: %v\nOutput: %s", err, output)
+	}
+
+	// Should be empty (no output) in a clean repo
+	if strings.TrimSpace(string(output)) != "" {
+		t.Errorf("expected empty output in clean repo with --names, got: %s", output)
+	}
+}
+
+func TestE2E_FmtChanged_NoOp(t *testing.T) {
+	motfBinary := buildMotf(t)
+	tmpDir := setupCleanGitRepo(t)
+
+	// In a clean repo with no changes, fmt --changed should be a no-op.
+	cmd := exec.Command(motfBinary, "fmt", "--changed", "--ref", "HEAD")
+	cmd.Dir = tmpDir
+	output, err := cmd.CombinedOutput()
+	if err != nil {
+		t.Fatalf("motf fmt --changed failed: %v\nOutput: %s", err, output)
+	}
+	if !strings.Contains(string(output), "No changed modules found") {
+		t.Errorf("expected no-op message, got: %s", output)
+	}
+}
+
+func TestE2E_ChangedCommand_DetectsUncommitted(t *testing.T) {
+	motfBinary := buildMotf(t)
+	tmpDir := setupCleanGitRepo(t)
+
+	// Create an uncommitted change in the module
+	modulePath := filepath.Join(tmpDir, "components", "test-module", "outputs.tf")
+	if err := os.WriteFile(modulePath, []byte("output \"test\" { value = \"changed\" }\n"), 0644); err != nil {
+		t.Fatalf("failed to write uncommitted change: %v", err)
+	}
+
+	// Run changed - should detect the uncommitted file
+	cmd := exec.Command(motfBinary, "changed", "--ref", "HEAD", "--names")
+	cmd.Dir = tmpDir
+	output, err := cmd.CombinedOutput()
+	if err != nil {
+		t.Fatalf("motf changed failed: %v\nOutput: %s", err, output)
+	}
+
+	if !strings.Contains(string(output), "test-module") {
+		t.Errorf("expected to detect uncommitted change in test-module, got: %s", output)
 	}
 }
 
