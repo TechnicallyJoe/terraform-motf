@@ -157,12 +157,12 @@ func GetDefaultBranch() (string, error) {
 		return "", fmt.Errorf("not a git repository: %w", err)
 	}
 
-	// Try origin/HEAD
-	ref, err := repo.Reference(plumbing.NewRemoteHEADReferenceName("origin"), true)
-	if err == nil {
-		// ref.Target() is like "refs/remotes/origin/main"
-		name := ref.Name().String()
-		parts := strings.Split(name, "/")
+	// Try origin/HEAD (symbolic ref that points to default branch)
+	ref, err := repo.Reference(plumbing.NewRemoteHEADReferenceName("origin"), false)
+	if err == nil && ref.Type() == plumbing.SymbolicReference {
+		// ref.Target() returns the ref it points to, e.g., "refs/remotes/origin/main"
+		target := ref.Target().String()
+		parts := strings.Split(target, "/")
 		if len(parts) > 0 {
 			return "origin/" + parts[len(parts)-1], nil
 		}
