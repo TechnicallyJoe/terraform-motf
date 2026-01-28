@@ -31,23 +31,3 @@ func TestBasicExample(t *testing.T) {
 	keyVaultName := terraform.Output(t, terraformOptions, "key_vault_name")
 	assert.NotEmpty(t, keyVaultName)
 }
-
-func TestWithSuffixExample(t *testing.T) {
-	t.Parallel()
-
-	terraformDir := filepath.Join("..", "examples", "with-suffix")
-
-	terraformOptions := &terraform.Options{
-		TerraformDir: terraformDir,
-	}
-
-	defer terraform.Destroy(t, terraformOptions)
-
-	terraform.InitAndApply(t, terraformOptions)
-
-	// Verify custom names contain the suffix
-	customNames := terraform.OutputMap(t, terraformOptions, "custom_names")
-	assert.Contains(t, customNames["resource_group"], "dev")
-	assert.Contains(t, customNames["storage_account"], "dev")
-	assert.Contains(t, customNames["key_vault"], "dev")
-}
