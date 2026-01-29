@@ -193,4 +193,3 @@ When using `--changed`:
 1. **Always fetch full history** for `--changed` to work correctly
 2. **Use `--ref`** explicitly in CI to avoid auto-detection issues
 3. **Combine `-i` with `val`** to ensure modules are initialized before validation
-4. **Cache Go modules** when building motf from source
