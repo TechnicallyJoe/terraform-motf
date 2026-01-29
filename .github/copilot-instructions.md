@@ -191,11 +191,43 @@ feat!: change task command argument order
 - Clear git history for contributors
 - Enables automated versioning if needed
 
+## Documentation
+
+The `/docs/` directory contains user-facing documentation that is automatically published to the GitHub Wiki via the `publish-wiki.yml` workflow.
+
+### Documentation Structure
+
+| File | Wiki Page | Content |
+|------|-----------|---------|
+| `docs/home.md` | Home | Main landing page: intro to motf, core concepts (polylith architecture, module types), quick start guide, feature overview, links to other pages |
+| `docs/commands.md` | Commands | Complete CLI reference: all 12 commands with flags, examples, output samples, compatibility matrix |
+| `docs/configuration.md` | Configuration | `.motf.yml` reference: all options, defaults, test engines, custom tasks definition and examples |
+| `docs/ci.md` | CI | CI/CD integration: GitHub Actions examples, `--changed` usage, matrix strategies, scripting patterns |
+| `docs/assets/` | - | Images and media (demo.gif, etc.) synced to wiki for embedding |
+
+### Updating Documentation
+
+1. Edit files in `/docs/` directory
+2. The `publish-wiki.yml` workflow automatically syncs changes to the GitHub Wiki
+
+### Writing Guidelines
+
+- Use lowercase filenames (`commands.md`, not `Commands.md`)
+- Link between wiki pages using relative links: `[Commands](commands)`, `[Configuration](configuration#custom-tasks)`
+- Reference images with `assets/` prefix: `![demo](assets/demo.gif)`
+- Keep README.md high-level with links to wiki for detailed documentation
+
 ## Maintaining This Document
 
-**Update this file when refactoring yields specific patterns.** Examples of patterns worth documenting:
-- Error handling conventions (like the `%w` wrapping pattern)
-- Structural decisions (like separating each command into its own `.go` file)
-- Testing approaches that improve readability or maintainability
-- New skip directories added to module discovery
+Ensure this instructions file stays up to date with architectural and coding conventions as the project evolves.
+Examples of patterns worth documenting:
 
+- When refactoring yields specific patterns
+  - Error handling conventions (like the `%w` wrapping pattern)
+  - Structural decisions (like separating each command into its own `.go` file)
+  - Testing approaches that improve readability or maintainability
+  - New skip directories added to module discovery
+- Changes to configuration options or validation rules
+- Updates to commit message conventions or release processes
+- Update to documentation
+- New commands added to the CLI (motf)
