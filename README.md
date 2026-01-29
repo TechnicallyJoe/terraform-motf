@@ -126,6 +126,7 @@ Contributions are welcome! This project uses [Conventional Commits](https://www.
 | `chore` | Maintenance | `chore(deps): update cobra to v1.9.0` |
 | `refactor` | Code refactoring | `refactor(cmd): extract helper functions` |
 | `test` | Tests | `test(e2e): add plan command tests` |
+| `ci` | Continuous Integration | `ci: update GitHub Actions workflow` |
 
 ## License
 
