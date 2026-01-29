@@ -60,7 +60,7 @@ changelog:
 
   groups:
     - title: "⚠️ Breaking Changes"
-      regexp: '^.*!:|BREAKING CHANGE:'
+      regexp: '^.*BREAKING CHANGE:'
       order: 0
     - title: "🚀 Features"
       regexp: '^feat(\(.+\))?!?:'
