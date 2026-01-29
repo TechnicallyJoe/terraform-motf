@@ -34,8 +34,8 @@ var configCmd = &cobra.Command{
 
 		if len(cfg.Tasks) > 0 {
 			fmt.Println("\nTasks:")
-			for name := range cfg.Tasks {
-				fmt.Printf("  - %s\n", name)
+			for name, task := range cfg.Tasks {
+				fmt.Printf(" - %-15s %s\n", name, valueOrDefault(task.Description, "(no description)"))
 			}
 		}
 
