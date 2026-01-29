@@ -47,21 +47,33 @@ changelog:
   sort: asc
   use: github
   filters:
+    include:
+      - '^feat(\(.+\))?!?:'
+      - '^fix(\(.+\))?!?:'
+      - '^chore(\(.+\))?!?:'
+      - '^refactor(\(.+\))?!?:'
+      - 'BREAKING CHANGE:'
     exclude:
-      - "^docs:"
-      - "^test:"
-      - "^chore:"
+      - '^chore\(wiki-sync\):'
       - Merge pull request
       - Merge branch
+
   groups:
-    - title: "🚀 Features"
-      regexp: '^.*?feat(\([[:word:]]+\))??!?:.+$'
+    - title: "⚠️ Breaking Changes"
+      regexp: '^.*!:|BREAKING CHANGE:'
       order: 0
-    - title: "🐛 Bug Fixes"
-      regexp: '^.*?fix(\([[:word:]]+\))??!?:.+$'
+    - title: "🚀 Features"
+      regexp: '^feat(\(.+\))?!?:'
       order: 1
-    - title: "🔧 Other"
-      order: 999
+    - title: "🐛 Bug Fixes"
+      regexp: '^fix(\(.+\))?!?:'
+      order: 2
+    - title: "♻️ Refactoring"
+      regexp: '^refactor(\(.+\))?!?:'
+      order: 3
+    - title: "🔧 Maintenance"
+      regexp: '^chore(\(.+\))?!?:'
+      order: 4
 
 release:
   github:
@@ -71,7 +83,7 @@ release:
   prerelease: auto
   mode: replace
   header: |
-    ## motf {{ .Version }}
+    ## motf v{{ .Version }}
 
     To install, download the appropriate binary for your platform below.
   footer: |
