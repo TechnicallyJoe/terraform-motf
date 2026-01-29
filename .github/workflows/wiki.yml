@@ -29,6 +29,7 @@ jobs:
           token: ${{ secrets.WIKI_TOKEN }}
           gitAuthorName: ${{ env.GIT_AUTHOR_NAME }}
           gitAuthorEmail: ${{ env.GIT_AUTHOR_EMAIL }}
+          commitMessage: "chore(wiki-sync): sync docs changes to wiki
 
   job-sync-wiki-to-docs:
     runs-on: ubuntu-latest
@@ -48,3 +49,4 @@ jobs:
           gitAuthorName: ${{ env.GIT_AUTHOR_NAME }}
           gitAuthorEmail: ${{ env.GIT_AUTHOR_EMAIL }}
           branch: master
+          commitMessage: "chore(wiki-sync): sync wiki changes to docs"
