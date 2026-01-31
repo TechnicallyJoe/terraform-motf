@@ -3,6 +3,7 @@ package e2e
 import (
 	"bytes"
 	"encoding/json"
+	"fmt"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -58,46 +59,82 @@ func buildMotf(t *testing.T) string {
 	return binaryPath
 }
 
+// initGitRepo initializes a git repository in the given directory with user config.
+func initGitRepo(t *testing.T, dir string) {
+	t.Helper()
+	cmd := exec.Command("git", "init")
+	cmd.Dir = dir
+	if output, err := cmd.CombinedOutput(); err != nil {
+		t.Fatalf("failed to init git repo: %v\nOutput: %s", err, output)
+	}
+
+	cmd = exec.Command("git", "config", "user.email", "test@example.com")
+	cmd.Dir = dir
+	_ = cmd.Run()
+	cmd = exec.Command("git", "config", "user.name", "Test User")
+	cmd.Dir = dir
+	_ = cmd.Run()
+}
+
+// createModules creates terraform modules under components/ in the given directory.
+func createModules(t *testing.T, dir string, names []string) {
+	t.Helper()
+	for _, name := range names {
+		moduleDir := filepath.Join(dir, "components", name)
+		if err := os.MkdirAll(moduleDir, 0755); err != nil {
+			t.Fatalf("failed to create module dir %s: %v", name, err)
+		}
+		content := fmt.Sprintf("# %s\nterraform {}\n", name)
+		if err := os.WriteFile(filepath.Join(moduleDir, "main.tf"), []byte(content), 0644); err != nil {
+			t.Fatalf("failed to write tf file for %s: %v", name, err)
+		}
+	}
+}
+
+// commitAll stages and commits all changes in the given directory.
+func commitAll(t *testing.T, dir, message string) {
+	t.Helper()
+	cmd := exec.Command("git", "add", "-A")
+	cmd.Dir = dir
+	_ = cmd.Run()
+	cmd = exec.Command("git", "commit", "-m", message)
+	cmd.Dir = dir
+	if output, err := cmd.CombinedOutput(); err != nil {
+		t.Fatalf("failed to commit: %v\nOutput: %s", err, output)
+	}
+}
+
+// addUncommittedFile creates a new file in each module to simulate uncommitted changes.
+func addUncommittedFile(t *testing.T, dir string, modules []string, filename, contentFmt string) {
+	t.Helper()
+	for _, mod := range modules {
+		moduleDir := filepath.Join(dir, "components", mod)
+		content := fmt.Sprintf(contentFmt, mod)
+		if err := os.WriteFile(filepath.Join(moduleDir, filename), []byte(content), 0644); err != nil {
+			t.Fatalf("failed to write %s for %s: %v", filename, mod, err)
+		}
+	}
+}
+
 // setupCleanGitRepo creates a temp directory with a git repo and polylith structure for testing.
 // Returns the path to the temp directory.
 func setupCleanGitRepo(t *testing.T) string {
 	t.Helper()
 	tmpDir := t.TempDir()
+	initGitRepo(t, tmpDir)
+	createModules(t, tmpDir, []string{"test-module"})
+	commitAll(t, tmpDir, "initial")
+	return tmpDir
+}
 
-	// Initialize git repo
-	cmd := exec.Command("git", "init")
-	cmd.Dir = tmpDir
-	if output, err := cmd.CombinedOutput(); err != nil {
-		t.Fatalf("failed to init git repo: %v\nOutput: %s", err, output)
-	}
-
-	// Configure git user for commits
-	cmd = exec.Command("git", "config", "user.email", "test@example.com")
-	cmd.Dir = tmpDir
-	_ = cmd.Run()
-	cmd = exec.Command("git", "config", "user.name", "Test User")
-	cmd.Dir = tmpDir
-	_ = cmd.Run()
-
-	// Create polylith structure with a module
-	moduleDir := filepath.Join(tmpDir, "components", "test-module")
-	if err := os.MkdirAll(moduleDir, 0755); err != nil {
-		t.Fatalf("failed to create module dir: %v", err)
-	}
-	if err := os.WriteFile(filepath.Join(moduleDir, "main.tf"), []byte("terraform {}\n"), 0644); err != nil {
-		t.Fatalf("failed to write tf file: %v", err)
-	}
-
-	// Commit the initial structure
-	cmd = exec.Command("git", "add", "-A")
-	cmd.Dir = tmpDir
-	_ = cmd.Run()
-	cmd = exec.Command("git", "commit", "-m", "initial")
-	cmd.Dir = tmpDir
-	if output, err := cmd.CombinedOutput(); err != nil {
-		t.Fatalf("failed to commit: %v\nOutput: %s", err, output)
-	}
-
+// setupGitRepoWithModules creates a temp directory with a git repo and specified modules.
+// All modules are committed. Returns the path to the temp directory.
+func setupGitRepoWithModules(t *testing.T, modules []string) string {
+	t.Helper()
+	tmpDir := t.TempDir()
+	initGitRepo(t, tmpDir)
+	createModules(t, tmpDir, modules)
+	commitAll(t, tmpDir, "initial")
 	return tmpDir
 }
 
@@ -934,5 +971,59 @@ tasks:
 	}
 	if !strings.Contains(outputStr, "test-component") {
 		t.Errorf("expected working dir to contain 'test-component', got: %s", outputStr)
+	}
+}
+
+// TestE2E_ParallelFlag tests the --parallel flag with --changed
+func TestE2E_ParallelFlag(t *testing.T) {
+	motfBinary := buildMotf(t)
+	modules := []string{"module-a", "module-b", "module-c"}
+	tmpDir := setupGitRepoWithModules(t, modules)
+
+	// Make uncommitted changes to all modules
+	addUncommittedFile(t, tmpDir, modules, "variables.tf", "variable \"test_%s\" {\n  type = string\n}\n")
+
+	// Run fmt --changed --parallel
+	cmd := exec.Command(motfBinary, "fmt", "--changed", "--ref", "HEAD", "--parallel")
+	cmd.Dir = tmpDir
+	output, err := cmd.CombinedOutput()
+	if err != nil {
+		t.Fatalf("motf fmt --changed --parallel failed: %v\nOutput: %s", err, output)
+	}
+
+	outputStr := string(output)
+
+	// Verify all modules were processed (they should appear in output with prefixes)
+	for _, mod := range modules {
+		if !strings.Contains(outputStr, mod) {
+			t.Errorf("expected output to contain module '%s', got: %s", mod, outputStr)
+		}
+	}
+}
+
+// TestE2E_ParallelFlag_MaxParallel tests the --max-parallel flag
+func TestE2E_ParallelFlag_MaxParallel(t *testing.T) {
+	motfBinary := buildMotf(t)
+	modules := []string{"mod-x", "mod-y", "mod-z"}
+	tmpDir := setupGitRepoWithModules(t, modules)
+
+	// Make uncommitted changes to all modules
+	addUncommittedFile(t, tmpDir, modules, "outputs.tf", "output \"out_%s\" {\n  value = \"test\"\n}\n")
+
+	// Run fmt --changed --parallel --max-parallel=1 (effectively sequential but using parallel infra)
+	cmd := exec.Command(motfBinary, "fmt", "--changed", "--ref", "HEAD", "--parallel", "--max-parallel", "1")
+	cmd.Dir = tmpDir
+	output, err := cmd.CombinedOutput()
+	if err != nil {
+		t.Fatalf("motf fmt --changed --parallel --max-parallel=1 failed: %v\nOutput: %s", err, output)
+	}
+
+	outputStr := string(output)
+
+	// Verify all modules were processed
+	for _, mod := range modules {
+		if !strings.Contains(outputStr, mod) {
+			t.Errorf("expected output to contain module '%s', got: %s", mod, outputStr)
+		}
 	}
 }
