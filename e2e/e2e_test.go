@@ -544,10 +544,7 @@ func TestE2E_ChangedCommand_DetectsUncommitted(t *testing.T) {
 	tmpDir := setupCleanGitRepo(t)
 
 	// Create an uncommitted change in the module
-	modulePath := filepath.Join(tmpDir, "components", "test-module", "outputs.tf")
-	if err := os.WriteFile(modulePath, []byte("output \"test\" { value = \"changed\" }\n"), 0644); err != nil {
-		t.Fatalf("failed to write uncommitted change: %v", err)
-	}
+	addUncommittedFile(t, tmpDir, []string{"test-module"}, "outputs.tf", "output \"test\" { value = \"changed\" }\n")
 
 	// Run changed - should detect the uncommitted file
 	cmd := exec.Command(motfBinary, "changed", "--ref", "HEAD", "--names")
@@ -747,8 +744,6 @@ func TestE2E_TofuFmt(t *testing.T) {
 	skipIfNoTofu(t)
 
 	motfBinary := buildMotf(t)
-
-	// Create a temp directory with tofu config
 	tmpDir := t.TempDir()
 
 	// Create a .motf.yml that uses tofu
@@ -757,16 +752,8 @@ func TestE2E_TofuFmt(t *testing.T) {
 		t.Fatalf("failed to write config: %v", err)
 	}
 
-	// Create components directory with a simple terraform file
-	componentDir := filepath.Join(tmpDir, "components", "test-component")
-	if err := os.MkdirAll(componentDir, 0755); err != nil {
-		t.Fatalf("failed to create component dir: %v", err)
-	}
-
-	tfContent := "variable \"test\" {\n  type = string\n}\n"
-	if err := os.WriteFile(filepath.Join(componentDir, "main.tf"), []byte(tfContent), 0644); err != nil {
-		t.Fatalf("failed to write tf file: %v", err)
-	}
+	// Create a component module
+	createModules(t, tmpDir, []string{"test-component"})
 
 	// Run fmt with tofu
 	cmd := exec.Command(motfBinary, "fmt", "test-component")
@@ -786,8 +773,6 @@ func TestE2E_TofuInit(t *testing.T) {
 	skipIfNoTofu(t)
 
 	motfBinary := buildMotf(t)
-
-	// Create a temp directory with tofu config
 	tmpDir := t.TempDir()
 
 	// Create a .motf.yml that uses tofu
@@ -796,16 +781,8 @@ func TestE2E_TofuInit(t *testing.T) {
 		t.Fatalf("failed to write config: %v", err)
 	}
 
-	// Create components directory with a simple terraform file
-	componentDir := filepath.Join(tmpDir, "components", "test-component")
-	if err := os.MkdirAll(componentDir, 0755); err != nil {
-		t.Fatalf("failed to create component dir: %v", err)
-	}
-
-	tfContent := "terraform {\n}\n\nvariable \"test\" {\n  type = string\n}\n"
-	if err := os.WriteFile(filepath.Join(componentDir, "main.tf"), []byte(tfContent), 0644); err != nil {
-		t.Fatalf("failed to write tf file: %v", err)
-	}
+	// Create a component module
+	createModules(t, tmpDir, []string{"test-component"})
 
 	// Run init with tofu
 	cmd := exec.Command(motfBinary, "init", "test-component")
@@ -885,14 +862,8 @@ func TestE2E_TaskList(t *testing.T) {
 	motfBinary := buildMotf(t)
 	tmpDir := t.TempDir()
 
-	// Create minimal polylith structure
-	componentDir := filepath.Join(tmpDir, "components", "test-component")
-	if err := os.MkdirAll(componentDir, 0755); err != nil {
-		t.Fatalf("failed to create component dir: %v", err)
-	}
-	if err := os.WriteFile(filepath.Join(componentDir, "main.tf"), []byte("terraform {}\n"), 0644); err != nil {
-		t.Fatalf("failed to write tf file: %v", err)
-	}
+	// Create a component module
+	createModules(t, tmpDir, []string{"test-component"})
 
 	// Create .motf.yml with tasks
 	configContent := `binary: terraform
@@ -934,14 +905,8 @@ func TestE2E_TaskRun(t *testing.T) {
 	motfBinary := buildMotf(t)
 	tmpDir := t.TempDir()
 
-	// Create minimal polylith structure
-	componentDir := filepath.Join(tmpDir, "components", "test-component")
-	if err := os.MkdirAll(componentDir, 0755); err != nil {
-		t.Fatalf("failed to create component dir: %v", err)
-	}
-	if err := os.WriteFile(filepath.Join(componentDir, "main.tf"), []byte("terraform {}\n"), 0644); err != nil {
-		t.Fatalf("failed to write tf file: %v", err)
-	}
+	// Create a component module
+	createModules(t, tmpDir, []string{"test-component"})
 
 	// Create .motf.yml with a task
 	configContent := `binary: terraform
