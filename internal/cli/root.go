@@ -33,7 +33,7 @@ var (
 	refFlag         string // Ref for change detection (defaults to auto-detect)
 	searchFlag      string // Filter pattern for list command
 	exampleFlag     string // Target a specific example instead of the module (init, fmt, validate)
-	parallelFlag    bool   // Run commands in parallel where supported (list, init, fmt, validate)
+	parallelFlag    bool   // Run commands in parallel (init, fmt, validate, test, plan, task)
 	maxparallelFlag int    // Maximum parallel jobs to run (default: number of CPU cores)
 )
 
