@@ -18,6 +18,10 @@ func resetFlags(t *testing.T) {
 		initFlag = false
 		searchFlag = ""
 		exampleFlag = ""
+		changedFlag = false
+		parallelFlag = false
+		maxparallelFlag = 0
+		refFlag = ""
 	})
 }
 

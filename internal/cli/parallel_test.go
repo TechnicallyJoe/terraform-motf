@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"errors"
 	"io"
+	"strings"
 	"sync/atomic"
 	"testing"
 	"time"
@@ -102,10 +103,10 @@ func TestRunOnModules_CollectsAllErrors(t *testing.T) {
 
 	// Should contain both module names in error
 	errStr := err.Error()
-	if !containsSubstring(errStr, "mod-a") {
+	if !strings.Contains(errStr, "mod-a") {
 		t.Errorf("error should mention mod-a: %s", errStr)
 	}
-	if !containsSubstring(errStr, "mod-c") {
+	if !strings.Contains(errStr, "mod-c") {
 		t.Errorf("error should mention mod-c: %s", errStr)
 	}
 }
@@ -131,10 +132,10 @@ func TestRunOnModules_ParallelCollectsAllErrors(t *testing.T) {
 
 	// Should contain both module names in error
 	errStr := err.Error()
-	if !containsSubstring(errStr, "mod-a") {
+	if !strings.Contains(errStr, "mod-a") {
 		t.Errorf("error should mention mod-a: %s", errStr)
 	}
-	if !containsSubstring(errStr, "mod-c") {
+	if !strings.Contains(errStr, "mod-c") {
 		t.Errorf("error should mention mod-c: %s", errStr)
 	}
 }
@@ -182,13 +183,13 @@ func TestModuleError(t *testing.T) {
 
 	// Test Error()
 	errStr := modErr.Error()
-	if !containsSubstring(errStr, "test-mod") {
+	if !strings.Contains(errStr, "test-mod") {
 		t.Errorf("error should contain module name: %s", errStr)
 	}
-	if !containsSubstring(errStr, "path/to/test") {
+	if !strings.Contains(errStr, "path/to/test") {
 		t.Errorf("error should contain module path: %s", errStr)
 	}
-	if !containsSubstring(errStr, "original error") {
+	if !strings.Contains(errStr, "original error") {
 		t.Errorf("error should contain original error: %s", errStr)
 	}
 
@@ -197,18 +198,4 @@ func TestModuleError(t *testing.T) {
 	if unwrapped != originalErr {
 		t.Errorf("Unwrap() should return original error")
 	}
-}
-
-// containsSubstring is a helper for checking substrings
-func containsSubstring(s, substr string) bool {
-	return len(s) >= len(substr) && (s == substr || len(s) > 0 && containsSubstringHelper(s, substr))
-}
-
-func containsSubstringHelper(s, substr string) bool {
-	for i := 0; i <= len(s)-len(substr); i++ {
-		if s[i:i+len(substr)] == substr {
-			return true
-		}
-	}
-	return false
 }
