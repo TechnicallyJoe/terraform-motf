@@ -13,6 +13,24 @@ These flags are available on all commands:
 | `-a`, `--args` | `motf plan storage-account -a -var="env=prod"` | Extra arguments to pass to terraform/tofu (repeatable) |
 | `-h`, `--help` | `motf task -h` | Show help for any command |
 
+## Parallel Execution Flags
+
+These flags are available on commands that support `--changed`:
+
+| Flag | Example | Description |
+|------|---------|-------------|
+| `-p`, `--parallel` | `motf fmt --changed --parallel` | Run commands in parallel across modules |
+| `--max-parallel` | `motf val --changed -p --max-parallel 4` | Maximum parallel jobs (default: number of CPU cores) |
+
+When parallel mode is enabled, output is prefixed with the module name and timestamp for clarity:
+
+```
+storage-account | 14:32:01.123 # Running 'terraform fmt'...
+argocd-base     | 14:32:01.125 # Running 'terraform fmt'...
+storage-account | 14:32:01.456 # Format complete
+argocd-base     | 14:32:01.789 # Format complete
+```
+
 ---
 
 ## init
@@ -30,6 +48,8 @@ motf init <module-name> [flags]
 | `--example` | `-e` | Run on a specific example instead of the module |
 | `--changed` | | Run on all modules changed compared to `--ref` |
 | `--ref` | | Git ref to compare against (default: auto-detect) |
+| `--parallel` | `-p` | Run commands in parallel across modules |
+| `--max-parallel` | | Maximum parallel jobs (default: number of CPU cores) |
 
 ### Examples
 
@@ -42,6 +62,9 @@ motf init storage-account -e basic
 
 # Init all changed modules
 motf init --changed
+
+# Init changed modules in parallel
+motf init --changed --parallel
 
 # Init changed modules compared to specific branch
 motf init --changed --ref origin/main
@@ -68,6 +91,8 @@ motf fmt <module-name> [flags]
 | `--example` | `-e` | Run on a specific example instead of the module |
 | `--changed` | | Run on all modules changed compared to `--ref` |
 | `--ref` | | Git ref to compare against (default: auto-detect) |
+| `--parallel` | `-p` | Run commands in parallel across modules |
+| `--max-parallel` | | Maximum parallel jobs (default: number of CPU cores) |
 
 ### Examples
 
@@ -84,11 +109,14 @@ motf fmt storage-account -e basic
 # Format all changed modules
 motf fmt --changed
 
+# Format all changed modules in parallel
+motf fmt --changed --parallel
+
 # Check formatting without modifying
 motf fmt storage-account -a -check
 
-# Check formatting on all changed modules
-motf fmt --changed -a -check
+# Check formatting on all changed modules in parallel
+motf fmt --changed -p -a -check
 ```
 
 ---
@@ -110,6 +138,8 @@ motf validate <module-name> [flags]
 | `--example` | `-e` | Run on a specific example instead of the module |
 | `--changed` | | Run on all modules changed compared to `--ref` |
 | `--ref` | | Git ref to compare against (default: auto-detect) |
+| `--parallel` | `-p` | Run commands in parallel across modules |
+| `--max-parallel` | | Maximum parallel jobs (default: number of CPU cores) |
 
 ### Examples
 
@@ -125,6 +155,9 @@ motf val storage-account -e basic
 
 # Validate all changed modules with init
 motf val -i --changed
+
+# Validate all changed modules in parallel
+motf val -i --changed --parallel
 
 # Validate against specific ref
 motf val --changed --ref origin/develop
@@ -148,6 +181,8 @@ motf plan <module-name> [flags]
 | `--example` | `-e` | Run on a specific example instead of the module |
 | `--changed` | | Run on all modules changed compared to `--ref` |
 | `--ref` | | Git ref to compare against (default: auto-detect) |
+| `--parallel` | `-p` | Run commands in parallel across modules |
+| `--max-parallel` | | Maximum parallel jobs (default: number of CPU cores) |
 
 ### Examples
 
@@ -160,6 +195,9 @@ motf plan -i storage-account
 
 # Plan an example
 motf plan storage-account -e basic
+
+# Plan all changed modules in parallel
+motf plan --changed --parallel
 
 # Plan with extra arguments
 motf plan storage-account -a -var="env=prod"
@@ -185,6 +223,8 @@ For more info see [configuration -> test engines](configuration#test-engines)
 |------|-------|-------------|
 | `--changed` | | Run tests on all modules changed compared to `--ref` |
 | `--ref` | | Git ref to compare against (default: auto-detect) |
+| `--parallel` | `-p` | Run commands in parallel across modules |
+| `--max-parallel` | | Maximum parallel jobs (default: number of CPU cores) |
 
 ### Examples
 
@@ -197,6 +237,9 @@ motf test storage-account -a -v
 
 # Run with timeout
 motf test storage-account -a -timeout=30m
+
+# Run tests on all changed modules in parallel
+motf test --changed --parallel
 
 # Run specific test
 motf test storage-account -a -run=TestBasic
@@ -455,6 +498,8 @@ See [Configuration](configuration#custom-tasks) for how to define tasks.
 | `--list` | `-l` | List available tasks |
 | `--changed` | | Run task on all modules changed compared to `--ref` |
 | `--ref` | | Git ref to compare against (default: auto-detect) |
+| `--parallel` | `-p` | Run commands in parallel across modules |
+| `--max-parallel` | | Maximum parallel jobs (default: number of CPU cores) |
 
 ### Examples
 
@@ -470,6 +515,9 @@ motf task --path ./modules/x --task docs
 
 # Run task on changed modules
 motf task --changed --task lint
+
+# Run task on changed modules in parallel
+motf task --changed --task lint --parallel
 ```
 
 ---

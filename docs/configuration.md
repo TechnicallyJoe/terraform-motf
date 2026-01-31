@@ -33,6 +33,12 @@ test:
   # Default: ""
   args: "-v -timeout=30m"
 
+# Parallelism configuration for --parallel flag
+parallelism:
+  # Maximum number of parallel jobs
+  # Default: 0 (auto-detect based on CPU cores)
+  max_jobs: 4
+
 # Custom tasks (see Custom Tasks section below)
 tasks:
   lint:
@@ -55,6 +61,7 @@ tasks:
 | `binary` | string | `"terraform"` | Binary to use: `"terraform"` or `"tofu"` |
 | `test.engine` | string | `"terratest"` | Test engine: `"terratest"`, `"terraform"`, or `"tofu"` |
 | `test.args` | string | `""` | Additional arguments passed to the test command |
+| `parallelism.max_jobs` | int | `0` | Maximum parallel jobs. `0` means auto-detect (number of CPU cores) |
 | `tasks` | map | `{}` | Custom task definitions (see below) |
 
 ### Root Directory
@@ -117,6 +124,59 @@ test:
 # Executes: go test ./... -v -timeout=30m -run=TestBasic
 motf test storage-account -a -run=TestBasic
 ```
+
+---
+
+## Parallelism Configuration
+
+Configure default parallel execution behavior for commands with `--parallel` flag:
+
+```yaml
+parallelism:
+  max_jobs: 4
+```
+
+### Options
+
+| Option | Default | Description |
+|--------|---------|-------------|
+| `max_jobs` | `0` | Maximum concurrent jobs. `0` = auto-detect (uses number of CPU cores) |
+
+### Priority Order
+
+The effective max parallel jobs is determined in this order:
+
+1. `--max-parallel` CLI flag (highest priority)
+2. `parallelism.max_jobs` in `.motf.yml`
+3. Auto-detect based on `runtime.NumCPU()` (default)
+
+### Example
+
+```yaml
+parallelism:
+  max_jobs: 8
+```
+
+```bash
+# Uses 8 parallel jobs from config
+motf fmt --changed --parallel
+
+# Overrides to 2 parallel jobs
+motf fmt --changed --parallel --max-parallel 2
+```
+
+### Output Format
+
+When running in parallel mode, output is prefixed with module name and timestamp:
+
+```
+storage-account | 14:32:01.123 # Running 'terraform fmt'...
+argocd-base     | 14:32:01.125 # Running 'terraform fmt'...
+storage-account | 14:32:01.456 # Format complete
+argocd-base     | 14:32:01.789 # Format complete
+```
+
+Each module is assigned a unique color for easier visual tracking.
 
 ---
 
