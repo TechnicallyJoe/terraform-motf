@@ -2,6 +2,7 @@ package tasks
 
 import (
 	"fmt"
+	"io"
 	"os"
 	"os/exec"
 	"strings"
@@ -81,6 +82,11 @@ func (r *Runner) ListTasks() []string {
 
 // Run executes a task by name in the given working directory
 func (r *Runner) Run(taskName, workDir string) error {
+	return r.RunWithOutput(taskName, workDir, os.Stdout, os.Stderr)
+}
+
+// RunWithOutput executes a task with custom output writers
+func (r *Runner) RunWithOutput(taskName, workDir string, stdout, stderr io.Writer) error {
 	task := r.GetTask(taskName)
 	if task == nil {
 		return fmt.Errorf("task '%s' not found", taskName)
@@ -95,14 +101,13 @@ func (r *Runner) Run(taskName, workDir string) error {
 		return fmt.Errorf("task '%s': %w", taskName, err)
 	}
 
-	fmt.Printf("Running task '%s' in %s\n", taskName, workDir)
-	fmt.Printf("$ %s\n", task.Command)
+	_, _ = fmt.Fprintf(stdout, "Running task '%s' in %s\n", taskName, workDir)
+	_, _ = fmt.Fprintf(stdout, "$ %s\n", task.Command)
 
 	cmd := exec.Command(binary, args...) //nolint:gosec // binary and args are from user-defined task configuration
 	cmd.Dir = workDir
-	cmd.Stdout = os.Stdout
-	cmd.Stderr = os.Stderr
-	cmd.Stdin = os.Stdin
+	cmd.Stdout = stdout
+	cmd.Stderr = stderr
 
 	return cmd.Run()
 }

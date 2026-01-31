@@ -28,11 +28,13 @@ var (
 	// Command-specific flags
 	// Note: These are registered per-command but share state here for simplicity.
 	// Each command that uses these flags registers them in its own init().
-	initFlag    bool   // Run init before the command (fmt, validate)
-	changedFlag bool   // Run command against changed modules
-	refFlag     string // Ref for change detection (defaults to auto-detect)
-	searchFlag  string // Filter pattern for list command
-	exampleFlag string // Target a specific example instead of the module (init, fmt, validate)
+	initFlag        bool   // Run init before the command (fmt, validate)
+	changedFlag     bool   // Run command against changed modules
+	refFlag         string // Ref for change detection (defaults to auto-detect)
+	searchFlag      string // Filter pattern for list command
+	exampleFlag     string // Target a specific example instead of the module (init, fmt, validate)
+	parallelFlag    bool   // Run commands in parallel where supported (list, init, fmt, validate)
+	maxparallelFlag int    // Maximum parallel jobs to run (default: number of CPU cores)
 )
 
 // versionTemplate returns the version string with commit and date.
@@ -67,6 +69,15 @@ in a structured monorepo.`,
 		cfg, err = config.Load(wd, configFlag)
 		if err != nil {
 			return err
+		}
+
+		// Merge CLI flags into config (CLI takes priority)
+		// This centralizes the "CLI overrides config" logic in one place.
+		if cmd.Flags().Changed("max-parallel") {
+			if cfg.Parallelism == nil {
+				cfg.Parallelism = &config.ParallelismConfig{}
+			}
+			cfg.Parallelism.MaxJobs = maxparallelFlag
 		}
 
 		// Create terraform runner with config

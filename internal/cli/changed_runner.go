@@ -2,12 +2,19 @@ package cli
 
 import (
 	"fmt"
+	"io"
 	"path/filepath"
+
+	"github.com/TechnicallyJoe/terraform-motf/internal/config"
 )
 
-// runOnChangedModules detects changed modules and runs fn on each module's absolute path.
+// runOnChangedModules detects changed modules and runs fn on each module.
+// When parallelFlag is set, modules are processed concurrently.
 // It is a no-op (success) when no changed modules are found.
-func runOnChangedModules(fn func(moduleAbsPath string) error) error {
+//
+// The function signature for fn receives stdout/stderr writers to support
+// prefixed output in parallel mode.
+func runOnChangedModules(fn func(mod ModuleInfo, stdout, stderr io.Writer) error) error {
 	if pathFlag != "" {
 		return fmt.Errorf("--changed cannot be used with --path")
 	}
@@ -24,17 +31,24 @@ func runOnChangedModules(fn func(moduleAbsPath string) error) error {
 		return nil
 	}
 
+	var parallelismCfg *config.ParallelismConfig
+	if cfg != nil {
+		parallelismCfg = cfg.Parallelism
+	}
+
+	return RunOnModulesWithFlags(modules, parallelismCfg, fn)
+}
+
+// runOnChangedModulesWithPath is a convenience wrapper for commands that need
+// the module's absolute path. It wraps fn to provide the path from ModuleInfo.
+func runOnChangedModulesWithPath(fn func(moduleAbsPath string, stdout, stderr io.Writer) error) error {
 	basePath, err := getBasePath()
 	if err != nil {
 		return err
 	}
 
-	for _, mod := range modules {
+	return runOnChangedModules(func(mod ModuleInfo, stdout, stderr io.Writer) error {
 		moduleAbsPath := filepath.Join(basePath, mod.Path)
-		if err := fn(moduleAbsPath); err != nil {
-			return fmt.Errorf("%s (%s): %w", mod.Name, mod.Path, err)
-		}
-	}
-
-	return nil
+		return fn(moduleAbsPath, stdout, stderr)
+	})
 }

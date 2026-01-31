@@ -33,10 +33,24 @@ func TestLoad_WithConfigFileWithoutValues(t *testing.T) {
 	if cfg.Root != tmpDir {
 		t.Errorf("expected Root to be '%s' (git root), got '%s'", tmpDir, cfg.Root)
 	}
+	// Binary should be default
 	if cfg.Binary != "terraform" {
 		t.Errorf("expected Binary to be 'terraform', got '%s'", cfg.Binary)
 	}
-	// Parallelism MaxJobs should be default
+	// Test config should have defaults
+	if cfg.Test == nil {
+		t.Fatal("expected Test config to be set")
+	}
+	if cfg.Test.Engine != "terratest" {
+		t.Errorf("expected Test.Engine to be 'terratest', got '%s'", cfg.Test.Engine)
+	}
+	if cfg.Test.Args != "" {
+		t.Errorf("expected Test.Args to be empty, got '%s'", cfg.Test.Args)
+	}
+	// Parallelism should have defaults
+	if cfg.Parallelism == nil {
+		t.Fatal("expected Parallelism config to be set")
+	}
 	if cfg.Parallelism.GetMaxJobs() != runtime.NumCPU() {
 		t.Errorf("expected Parallelism.MaxJobs to be '%d' (number of CPU cores), got '%d'", runtime.NumCPU(), cfg.Parallelism.GetMaxJobs())
 	}
@@ -103,7 +117,20 @@ func TestLoad_NoConfigFile(t *testing.T) {
 	if cfg.Binary != "terraform" {
 		t.Errorf("expected Binary to be 'terraform', got '%s'", cfg.Binary)
 	}
-	// Parallelism MaxJobs should be default
+	// Test config should have defaults
+	if cfg.Test == nil {
+		t.Fatal("expected Test config to be set")
+	}
+	if cfg.Test.Engine != "terratest" {
+		t.Errorf("expected Test.Engine to be 'terratest', got '%s'", cfg.Test.Engine)
+	}
+	if cfg.Test.Args != "" {
+		t.Errorf("expected Test.Args to be empty, got '%s'", cfg.Test.Args)
+	}
+	// Parallelism should have defaults
+	if cfg.Parallelism == nil {
+		t.Fatal("expected Parallelism config to be set")
+	}
 	if cfg.Parallelism.GetMaxJobs() != runtime.NumCPU() {
 		t.Errorf("expected Parallelism.MaxJobs to be '%d' (number of CPU cores), got '%d'", runtime.NumCPU(), cfg.Parallelism.GetMaxJobs())
 	}

@@ -1,6 +1,8 @@
 package cli
 
 import (
+	"io"
+
 	"github.com/spf13/cobra"
 )
 
@@ -13,23 +15,23 @@ var planCmd = &cobra.Command{
 Use the --example/-e flag to run plan on a specific example instead of the module itself.
 
 Examples:
-  motf plan storage-account              # Run plan on storage-account module
-  motf plan storage-account -e basic     # Run plan on the 'basic' example
-  motf plan storage-account --example basic
-  motf plan -i storage-account           # Run init then plan`,
+  motf plan storage-account                 # Run plan on storage-account module
+  motf plan storage-account -e basic        # Run plan on the 'basic' example
+  motf plan storage-account --example basic # Run plan on the 'basic' example
+  motf plan -i storage-account              # Run init then plan`,
 	Args: cobra.MaximumNArgs(1),
 	RunE: func(cmd *cobra.Command, args []string) error {
 		if changedFlag {
 			if len(args) > 0 {
 				return cobra.MaximumNArgs(0)(cmd, args)
 			}
-			return runOnChangedModules(func(moduleAbsPath string) error {
+			return runOnChangedModulesWithPath(func(moduleAbsPath string, stdout, stderr io.Writer) error {
 				if initFlag {
-					if err := runner.RunInit(moduleAbsPath); err != nil {
+					if err := runner.RunInitWithOutput(moduleAbsPath, stdout, stderr); err != nil {
 						return err
 					}
 				}
-				return runner.RunPlan(moduleAbsPath, argsFlag...)
+				return runner.RunPlanWithOutput(moduleAbsPath, stdout, stderr, argsFlag...)
 			})
 		}
 
@@ -54,5 +56,7 @@ func init() {
 	planCmd.Flags().StringVarP(&exampleFlag, "example", "e", "", "Run on a specific example instead of the module")
 	planCmd.Flags().BoolVar(&changedFlag, "changed", false, "Run on modules changed compared to --ref")
 	planCmd.Flags().StringVar(&refFlag, "ref", "", "Git ref for --changed (default: auto-detect from origin/HEAD)")
+	planCmd.Flags().BoolVarP(&parallelFlag, "parallel", "p", false, "Run commands in parallel")
+	planCmd.Flags().IntVar(&maxparallelFlag, "max-parallel", 0, "Maximum parallel jobs (default: number of CPU cores)")
 	rootCmd.AddCommand(planCmd)
 }

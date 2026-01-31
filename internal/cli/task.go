@@ -2,6 +2,7 @@ package cli
 
 import (
 	"fmt"
+	"io"
 	"sort"
 
 	"github.com/TechnicallyJoe/terraform-motf/internal/tasks"
@@ -27,7 +28,8 @@ Examples:
   motf task storage-account -t hello-world     # Run 'hello-world' task
   motf task storage-account --task lint        # Run 'lint' task
   motf task --path ./modules/x -t docs         # Run task on explicit path
-  motf task -t lint --changed                  # Run 'lint' task on changed modules`,
+  motf task -t lint --changed                  # Run 'lint' task on changed modules
+  motf task -t lint --changed --parallel       # Run 'lint' task on changed modules in parallel`,
 	Args: cobra.MaximumNArgs(1),
 	RunE: func(cmd *cobra.Command, args []string) error {
 		// If no task specified, list tasks
@@ -39,9 +41,9 @@ Examples:
 			if len(args) > 0 {
 				return cobra.MaximumNArgs(0)(cmd, args)
 			}
-			return runOnChangedModules(func(moduleAbsPath string) error {
+			return runOnChangedModulesWithPath(func(moduleAbsPath string, stdout, stderr io.Writer) error {
 				taskRunner := tasks.NewRunner(cfg.Tasks)
-				return taskRunner.Run(taskFlag, moduleAbsPath)
+				return taskRunner.RunWithOutput(taskFlag, moduleAbsPath, stdout, stderr)
 			})
 		}
 
@@ -88,5 +90,7 @@ func init() {
 	taskCmd.Flags().BoolVarP(&listTaskFlag, "list", "l", false, "List available tasks")
 	taskCmd.Flags().BoolVar(&changedFlag, "changed", false, "Run on modules changed compared to --ref")
 	taskCmd.Flags().StringVar(&refFlag, "ref", "", "Git ref for --changed (default: auto-detect from origin/HEAD)")
+	taskCmd.Flags().BoolVarP(&parallelFlag, "parallel", "p", false, "Run commands in parallel")
+	taskCmd.Flags().IntVar(&maxparallelFlag, "max-parallel", 0, "Maximum parallel jobs (default: number of CPU cores)")
 	rootCmd.AddCommand(taskCmd)
 }

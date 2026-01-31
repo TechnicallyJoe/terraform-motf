@@ -1,6 +1,8 @@
 package cli
 
 import (
+	"io"
+
 	"github.com/spf13/cobra"
 )
 
@@ -23,13 +25,13 @@ Examples:
 			if len(args) > 0 {
 				return cobra.MaximumNArgs(0)(cmd, args)
 			}
-			return runOnChangedModules(func(moduleAbsPath string) error {
+			return runOnChangedModulesWithPath(func(moduleAbsPath string, stdout, stderr io.Writer) error {
 				if initFlag {
-					if err := runner.RunInit(moduleAbsPath); err != nil {
+					if err := runner.RunInitWithOutput(moduleAbsPath, stdout, stderr); err != nil {
 						return err
 					}
 				}
-				return runner.RunValidate(moduleAbsPath, argsFlag...)
+				return runner.RunValidateWithOutput(moduleAbsPath, stdout, stderr, argsFlag...)
 			})
 		}
 
@@ -54,5 +56,7 @@ func init() {
 	valCmd.Flags().StringVarP(&exampleFlag, "example", "e", "", "Run on a specific example instead of the module")
 	valCmd.Flags().BoolVar(&changedFlag, "changed", false, "Run on modules changed compared to --ref")
 	valCmd.Flags().StringVar(&refFlag, "ref", "", "Git ref for --changed (default: auto-detect from origin/HEAD)")
+	valCmd.Flags().BoolVarP(&parallelFlag, "parallel", "p", false, "Run commands in parallel")
+	valCmd.Flags().IntVar(&maxparallelFlag, "max-parallel", 0, "Maximum parallel jobs (default: number of CPU cores)")
 	rootCmd.AddCommand(valCmd)
 }
