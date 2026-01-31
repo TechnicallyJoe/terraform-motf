@@ -1,6 +1,8 @@
 package cli
 
 import (
+	"io"
+
 	"github.com/spf13/cobra"
 )
 
@@ -23,8 +25,8 @@ Examples:
 			if len(args) > 0 {
 				return cobra.MaximumNArgs(0)(cmd, args)
 			}
-			return runOnChangedModules(func(moduleAbsPath string) error {
-				return runner.RunTest(moduleAbsPath, argsFlag...)
+			return runOnChangedModulesWithPath(func(moduleAbsPath string, stdout, stderr io.Writer) error {
+				return runner.RunTestWithOutput(moduleAbsPath, stdout, stderr, argsFlag...)
 			})
 		}
 
@@ -40,5 +42,7 @@ Examples:
 func init() {
 	testCmd.Flags().BoolVar(&changedFlag, "changed", false, "Run on modules changed compared to --ref")
 	testCmd.Flags().StringVar(&refFlag, "ref", "", "Git ref for --changed (default: auto-detect from origin/HEAD)")
+	testCmd.Flags().BoolVarP(&parallelFlag, "parallel", "p", false, "Run commands in parallel")
+	testCmd.Flags().IntVar(&maxparallelFlag, "max-parallel", 0, "Maximum parallel jobs (default: number of CPU cores)")
 	rootCmd.AddCommand(testCmd)
 }
