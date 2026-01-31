@@ -34,7 +34,7 @@ var (
 	searchFlag      string // Filter pattern for list command
 	exampleFlag     string // Target a specific example instead of the module (init, fmt, validate)
 	parallelFlag    bool   // Run commands in parallel (init, fmt, validate, test, plan, task)
-	maxparallelFlag int    // Maximum parallel jobs to run (default: number of CPU cores)
+	maxParallelFlag int    // Maximum parallel jobs to run (default: number of CPU cores)
 )
 
 // versionTemplate returns the version string with commit and date.
@@ -77,7 +77,7 @@ in a structured monorepo.`,
 			if cfg.Parallelism == nil {
 				cfg.Parallelism = &config.ParallelismConfig{}
 			}
-			cfg.Parallelism.MaxJobs = maxparallelFlag
+			cfg.Parallelism.MaxJobs = maxParallelFlag
 		}
 
 		// Create terraform runner with config

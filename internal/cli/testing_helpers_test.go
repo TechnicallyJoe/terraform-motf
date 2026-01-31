@@ -20,7 +20,7 @@ func resetFlags(t *testing.T) {
 		exampleFlag = ""
 		changedFlag = false
 		parallelFlag = false
-		maxparallelFlag = 0
+		maxParallelFlag = 0
 		refFlag = ""
 	})
 }

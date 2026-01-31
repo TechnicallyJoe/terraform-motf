@@ -57,6 +57,6 @@ func init() {
 	planCmd.Flags().BoolVar(&changedFlag, "changed", false, "Run on modules changed compared to --ref")
 	planCmd.Flags().StringVar(&refFlag, "ref", "", "Git ref for --changed (default: auto-detect from origin/HEAD)")
 	planCmd.Flags().BoolVarP(&parallelFlag, "parallel", "p", false, "Run commands in parallel")
-	planCmd.Flags().IntVar(&maxparallelFlag, "max-parallel", 0, "Maximum parallel jobs (default: number of CPU cores)")
+	planCmd.Flags().IntVar(&maxParallelFlag, "max-parallel", 0, "Maximum parallel jobs (default: number of CPU cores)")
 	rootCmd.AddCommand(planCmd)
 }

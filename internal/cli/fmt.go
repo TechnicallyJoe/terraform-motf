@@ -56,6 +56,6 @@ func init() {
 	fmtCmd.Flags().BoolVar(&changedFlag, "changed", false, "Run on modules changed compared to --ref")
 	fmtCmd.Flags().StringVar(&refFlag, "ref", "", "Git ref for --changed (default: auto-detect from origin/HEAD)")
 	fmtCmd.Flags().BoolVarP(&parallelFlag, "parallel", "p", false, "Run commands in parallel")
-	fmtCmd.Flags().IntVar(&maxparallelFlag, "max-parallel", 0, "Maximum parallel jobs (default: number of CPU cores)")
+	fmtCmd.Flags().IntVar(&maxParallelFlag, "max-parallel", 0, "Maximum parallel jobs (default: number of CPU cores)")
 	rootCmd.AddCommand(fmtCmd)
 }
