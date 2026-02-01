@@ -458,6 +458,7 @@ See [Configuration](configuration#custom-tasks) for how to define tasks.
 |------|-------|-------------|
 | `--task` | `-t` | Name of the task to run |
 | `--list` | `-l` | List available tasks |
+| `--example` | `-e` | Run on a specific example instead of the module |
 | `--changed` | | Run task on all modules changed compared to `--ref` |
 | `--ref` | | Git ref to compare against (default: auto-detect) |
 | `--parallel` | `-p` | Run commands in parallel across modules |
@@ -471,6 +472,9 @@ motf task --list
 
 # Run a specific task
 motf task storage-account --task lint
+
+# Run a task on an example
+motf task storage-account -t lint -e basic
 
 # Run task on explicit path
 motf task --path ./modules/x --task docs

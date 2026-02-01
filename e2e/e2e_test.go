@@ -973,6 +973,128 @@ tasks:
 	}
 }
 
+// TestE2E_TaskRunOnExample tests running a task on an example
+func TestE2E_TaskRunOnExample(t *testing.T) {
+	motfBinary := buildMotf(t)
+	tmpDir := t.TempDir()
+
+	// Create a component module with an example
+	moduleDir := filepath.Join(tmpDir, "components", "test-component")
+	if err := os.MkdirAll(moduleDir, 0755); err != nil {
+		t.Fatalf("failed to create module dir: %v", err)
+	}
+	if err := os.WriteFile(filepath.Join(moduleDir, "main.tf"), []byte("# test module\n"), 0644); err != nil {
+		t.Fatalf("failed to write main.tf: %v", err)
+	}
+
+	// Create an example within the module
+	exampleDir := filepath.Join(moduleDir, "examples", "basic")
+	if err := os.MkdirAll(exampleDir, 0755); err != nil {
+		t.Fatalf("failed to create example dir: %v", err)
+	}
+	if err := os.WriteFile(filepath.Join(exampleDir, "main.tf"), []byte("# basic example\n"), 0644); err != nil {
+		t.Fatalf("failed to write example main.tf: %v", err)
+	}
+
+	// Create .motf.yml with a task that outputs the working directory
+	configContent := `binary: terraform
+tasks:
+  show-path:
+    description: "Show current path"
+    shell: sh
+    command: |
+      echo "Working in: $(pwd)"
+`
+	if err := os.WriteFile(filepath.Join(tmpDir, ".motf.yml"), []byte(configContent), 0644); err != nil {
+		t.Fatalf("failed to write config: %v", err)
+	}
+
+	// Run the task on the example
+	cmd := exec.Command(motfBinary, "task", "test-component", "-t", "show-path", "-e", "basic")
+	cmd.Dir = tmpDir
+	output, err := cmd.CombinedOutput()
+	if err != nil {
+		t.Fatalf("motf task with example failed: %v\nOutput: %s", err, output)
+	}
+
+	outputStr := string(output)
+	// Verify the task ran in the example directory
+	if !strings.Contains(outputStr, "examples/basic") {
+		t.Errorf("expected output to contain 'examples/basic', got: %s", outputStr)
+	}
+}
+
+// TestE2E_TaskExampleNotFound tests error when example doesn't exist
+func TestE2E_TaskExampleNotFound(t *testing.T) {
+	motfBinary := buildMotf(t)
+	tmpDir := t.TempDir()
+
+	// Create a component module without examples
+	moduleDir := filepath.Join(tmpDir, "components", "test-component")
+	if err := os.MkdirAll(moduleDir, 0755); err != nil {
+		t.Fatalf("failed to create module dir: %v", err)
+	}
+	if err := os.WriteFile(filepath.Join(moduleDir, "main.tf"), []byte("# test module\n"), 0644); err != nil {
+		t.Fatalf("failed to write main.tf: %v", err)
+	}
+
+	// Create .motf.yml with a task
+	configContent := `binary: terraform
+tasks:
+  echo:
+    command: "echo hello"
+`
+	if err := os.WriteFile(filepath.Join(tmpDir, ".motf.yml"), []byte(configContent), 0644); err != nil {
+		t.Fatalf("failed to write config: %v", err)
+	}
+
+	// Run the task with a non-existent example
+	cmd := exec.Command(motfBinary, "task", "test-component", "-t", "echo", "-e", "nonexistent")
+	cmd.Dir = tmpDir
+	output, err := cmd.CombinedOutput()
+
+	// Should fail
+	if err == nil {
+		t.Fatalf("expected error for non-existent example, but command succeeded\nOutput: %s", output)
+	}
+
+	outputStr := string(output)
+	if !strings.Contains(outputStr, "nonexistent") || !strings.Contains(outputStr, "not found") {
+		t.Errorf("expected error message about example not found, got: %s", outputStr)
+	}
+}
+
+// TestE2E_TaskChangedWithExampleConflict tests that --changed and --example cannot be used together
+func TestE2E_TaskChangedWithExampleConflict(t *testing.T) {
+	motfBinary := buildMotf(t)
+	tmpDir := setupCleanGitRepo(t)
+
+	// Create .motf.yml with a task
+	configContent := `binary: terraform
+tasks:
+  echo:
+    command: "echo hello"
+`
+	if err := os.WriteFile(filepath.Join(tmpDir, ".motf.yml"), []byte(configContent), 0644); err != nil {
+		t.Fatalf("failed to write config: %v", err)
+	}
+
+	// Run task with both --changed and --example
+	cmd := exec.Command(motfBinary, "task", "-t", "echo", "--changed", "-e", "basic")
+	cmd.Dir = tmpDir
+	output, err := cmd.CombinedOutput()
+
+	// Should fail
+	if err == nil {
+		t.Fatalf("expected error for conflicting flags, but command succeeded\nOutput: %s", output)
+	}
+
+	outputStr := string(output)
+	if !strings.Contains(outputStr, "--changed") || !strings.Contains(outputStr, "--example") {
+		t.Errorf("expected error message about conflicting flags, got: %s", outputStr)
+	}
+}
+
 // TestE2E_ParallelFlag tests the --parallel flag with --changed
 func TestE2E_ParallelFlag(t *testing.T) {
 	motfBinary := buildMotf(t)

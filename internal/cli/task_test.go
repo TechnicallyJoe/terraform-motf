@@ -20,4 +20,12 @@ func TestTaskCmd_Flags(t *testing.T) {
 	if listFlagDef.Shorthand != "l" {
 		t.Errorf("list flag shorthand = %q, want %q", listFlagDef.Shorthand, "l")
 	}
+
+	exampleFlagDef := taskCmd.Flags().Lookup("example")
+	if exampleFlagDef == nil {
+		t.Fatal("task command should have --example flag")
+	}
+	if exampleFlagDef.Shorthand != "e" {
+		t.Errorf("example flag shorthand = %q, want %q", exampleFlagDef.Shorthand, "e")
+	}
 }

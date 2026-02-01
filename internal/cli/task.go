@@ -27,6 +27,7 @@ Examples:
   motf task storage-account --list             # List available tasks
   motf task storage-account -t hello-world     # Run 'hello-world' task
   motf task storage-account --task lint        # Run 'lint' task
+  motf task storage-account -t lint -e basic   # Run 'lint' task on 'basic' example
   motf task --path ./modules/x -t docs         # Run task on explicit path
   motf task -t lint --changed                  # Run 'lint' task on changed modules
   motf task -t lint --changed --parallel       # Run 'lint' task on changed modules in parallel`,
@@ -38,6 +39,9 @@ Examples:
 		}
 
 		if changedFlag {
+			if exampleFlag != "" {
+				return fmt.Errorf("--changed cannot be used with --example")
+			}
 			if len(args) > 0 {
 				return cobra.MaximumNArgs(0)(cmd, args)
 			}
@@ -47,8 +51,8 @@ Examples:
 			})
 		}
 
-		// Resolve module path
-		targetPath, err := resolveTargetPath(args)
+		// Resolve module path (with optional example)
+		targetPath, err := resolveTargetWithExample(args, exampleFlag)
 		if err != nil {
 			return err
 		}
@@ -88,6 +92,7 @@ func listTasks() error {
 func init() {
 	taskCmd.Flags().StringVarP(&taskFlag, "task", "t", "", "Task name to run")
 	taskCmd.Flags().BoolVarP(&listTaskFlag, "list", "l", false, "List available tasks")
+	taskCmd.Flags().StringVarP(&exampleFlag, "example", "e", "", "Run on a specific example instead of the module")
 	taskCmd.Flags().BoolVar(&changedFlag, "changed", false, "Run on modules changed compared to --ref")
 	taskCmd.Flags().StringVar(&refFlag, "ref", "", "Git ref for --changed (default: auto-detect from origin/HEAD)")
 	taskCmd.Flags().BoolVarP(&parallelFlag, "parallel", "p", false, "Run commands in parallel")
