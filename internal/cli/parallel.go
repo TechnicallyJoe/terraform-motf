@@ -76,14 +76,14 @@ func runParallel(modules []ModuleInfo, maxJobs int, maxNameLen int, out, errOut 
 
 	for i, mod := range modules {
 		wg.Add(1)
-		go func(idx int, m ModuleInfo) {
+		go func(index int, m ModuleInfo) {
 			defer wg.Done()
 
 			// Acquire semaphore
 			sem <- struct{}{}
 			defer func() { <-sem }()
 
-			writers := newPrefixedWriterPair(m.Name, maxNameLen, idx, out, errOut, outputMu)
+			writers := newPrefixedWriterPair(m.Name, maxNameLen, index, out, errOut, outputMu)
 			if err := fn(m, writers.stdout, writers.stderr); err != nil {
 				mu.Lock()
 				errs = append(errs, &moduleError{module: m, err: err})
