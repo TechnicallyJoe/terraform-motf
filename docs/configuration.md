@@ -260,6 +260,38 @@ tasks:
       echo "Files: $(ls *.tf | wc -l) terraform files"
 ```
 
+### Built-in Variables
+
+MOTF injects the following environment variables into every task execution:
+
+| Variable | Description |
+|----------|-------------|
+| `MOTF_GIT_ROOT` | Absolute path to the git repository root (empty if not in a git repo) |
+| `MOTF_MODULE_PATH` | Absolute path to the current module being processed |
+| `MOTF_MODULE_NAME` | Name of the module (last component of the path, e.g., `storage-account`) |
+| `MOTF_CONFIG_PATH` | Absolute path to the `.motf.yml` config file (empty if no config) |
+| `MOTF_BINARY` | The terraform/tofu binary name (`terraform` or `tofu`) |
+
+Example usage:
+
+```yaml
+tasks:
+  generate-docs:
+    description: "Generate docs using repo-level script"
+    command: $MOTF_GIT_ROOT/scripts/generate-docs.sh $MOTF_MODULE_NAME
+
+  lint:
+    description: "Run linting with terraform binary"
+    command: $MOTF_BINARY fmt -check $MOTF_MODULE_PATH
+
+  info:
+    description: "Show module info"
+    command: |
+      echo "Module: $MOTF_MODULE_NAME"
+      echo "Path: $MOTF_MODULE_PATH"
+      echo "Git root: $MOTF_GIT_ROOT"
+```
+
 #### Continuous Integrations
 
 ```yaml
