@@ -53,9 +53,60 @@ cd e2e && go test -v
 ./motf list          # from repo root with demo/ present
 ./motf get storage-account
 
-# Linting test
+# Linting
 golangci-lint run
 ```
+
+## Pre-commit Hooks
+
+This project uses [pre-commit](https://pre-commit.com/) with [TekWizely/pre-commit-golang](https://github.com/TekWizely/pre-commit-golang) hooks to ensure code quality before commits.
+
+### Setup
+
+```bash
+# Install pre-commit (if not already installed)
+pip install pre-commit
+# or: brew install pre-commit
+
+# Install git hooks (run once after cloning)
+pre-commit install
+
+# Install required Go tools
+go install golang.org/x/vuln/cmd/govulncheck@latest
+```
+
+### Running Checks
+
+```bash
+# Run all pre-commit hooks on staged files
+pre-commit run
+
+# Run all hooks on all files (useful for CI or first-time setup)
+pre-commit run --all-files
+
+# Run a specific hook
+pre-commit run golangci-lint-repo-mod --all-files
+```
+
+### Hooks Included
+
+| Hook | Purpose |
+|------|---------|
+| `trailing-whitespace` | Remove trailing whitespace |
+| `end-of-file-fixer` | Ensure files end with newline |
+| `check-yaml` | Validate YAML syntax |
+| `check-added-large-files` | Prevent large files from being committed |
+| `go-fmt-repo` | Format Go code with `gofmt` |
+| `golangci-lint-repo-mod` | Run golangci-lint (includes staticcheck, go vet, gosec, etc.) |
+| `go-build-repo-mod` | Verify code compiles |
+| `go-vulncheck-repo-mod` | Check for known vulnerabilities |
+| `go-mod-tidy-repo` | Keep go.mod/go.sum tidy |
+
+### Notes
+
+- **Tests are run in CI**, not pre-commit, for faster commits
+- **govulncheck** may fail if your Go version has known CVEs - update Go to fix
+- **golangci-lint** configuration is in `.golangci.yml`
 
 ## Code Conventions
 

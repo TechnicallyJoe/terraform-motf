@@ -1,0 +1,36 @@
+# See https://pre-commit.com for more information
+# See https://github.com/TekWizely/pre-commit-golang for Go hooks
+repos:
+  # Standard pre-commit hooks
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v4.5.0
+    hooks:
+      - id: trailing-whitespace
+      - id: end-of-file-fixer
+      - id: check-yaml
+      - id: check-added-large-files
+
+  # Golang hooks
+  - repo: https://github.com/tekwizely/pre-commit-golang
+    rev: v1.0.0-rc.4
+    hooks:
+      # Formatting - use go-fmt-repo for consistency
+      - id: go-fmt-repo
+
+      # Linting - golangci-lint is a meta-linter that includes
+      # go vet, staticcheck, and many others. No need to run them separately.
+      - id: golangci-lint-repo-mod
+
+      # Build check - ensures code compiles
+      - id: go-build-repo-mod
+
+      # Security - catches known vulnerabilities in dependencies
+      # Note: Requires up-to-date Go version to pass (check golang.org for patches)
+      - id: go-vulncheck-repo-mod
+
+      # Tests - run on commit (optional, can be slow)
+      # Prefer running tests in CI for faster commits
+      # - id: go-test-repo-mod
+
+      # Module tidiness
+      - id: go-mod-tidy-repo

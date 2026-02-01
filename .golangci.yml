@@ -4,10 +4,18 @@ run:
   timeout: 5m
   modules-download-mode: readonly
 
+output:
+  formats:
+    text:
+      path: stdout
+
 formatters:
   enable:
     - gofmt
     - goimports
+  exclusions:
+    paths:
+      - .terraform
 
 linters:
   enable:
@@ -30,6 +38,8 @@ linters:
         - name: exported
           disabled: true
   exclusions:
+    paths:
+      - .terraform
     rules:
       - path: _test\.go
         linters:
