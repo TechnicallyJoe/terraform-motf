@@ -3,6 +3,7 @@ package cli
 import (
 	"bytes"
 	"errors"
+	"fmt"
 	"io"
 	"strings"
 	"sync/atomic"
@@ -144,7 +145,7 @@ func TestRunOnModules_BoundedParallelism(t *testing.T) {
 	var buf bytes.Buffer
 	modules := make([]ModuleInfo, 10)
 	for i := range modules {
-		modules[i] = ModuleInfo{Name: "mod-" + string(rune('a'+i)), Path: "path/" + string(rune('a'+i))}
+		modules[i] = ModuleInfo{Name: fmt.Sprintf("mod-%d", i), Path: fmt.Sprintf("path/%d", i)}
 	}
 
 	var concurrent atomic.Int32

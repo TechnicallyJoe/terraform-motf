@@ -10,7 +10,7 @@ import (
 
 // runOnChangedModules detects changed modules and runs fn on each module.
 // When parallelFlag is set, modules are processed concurrently.
-// parallelFlag is a package level CLI flag, set by CLI arguments
+// parallelFlag is a package-level CLI flag set by command-line arguments.
 // It is a no-op (success) when no changed modules are found.
 //
 // The function signature for fn receives stdout/stderr writers to support

@@ -2,6 +2,7 @@ package cli
 
 import (
 	"bytes"
+	"fmt"
 	"strings"
 	"sync"
 	"testing"
@@ -234,7 +235,7 @@ func TestPrefixedWriter_ConcurrentWrites(t *testing.T) {
 	// Create multiple writers sharing the same mutex
 	writers := make([]*prefixedWriter, 5)
 	for i := range writers {
-		writers[i] = newPrefixedWriter("mod"+string(rune('A'+i)), 5, i, &buf, mu)
+		writers[i] = newPrefixedWriter(fmt.Sprintf("mod-%d", i), 5, i, &buf, mu)
 		writers[i].timeFunc = func() time.Time { return time.Now() }
 	}
 

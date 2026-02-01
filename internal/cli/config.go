@@ -15,10 +15,10 @@ var configCmd = &cobra.Command{
 		if cfg.ConfigPath != "" {
 			fmt.Printf("Config file: %s\n\n", cfg.ConfigPath)
 		} else {
-			fmt.Print("Config file: none (using defaults)\n")
+			fmt.Print("Config file: none (using defaults)\n\n")
 		}
 
-		fmt.Println("\nSettings:")
+		fmt.Println("Settings:")
 		fmt.Printf("  root:   %s\n", valueOrDefault(cfg.Root, "(current directory)"))
 		fmt.Printf("  binary: %s\n", cfg.Binary)
 
