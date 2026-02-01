@@ -22,8 +22,8 @@ type ParallelismConfig struct {
 
 // GetMaxJobs returns the maximum number of parallel jobs to run.
 // If MaxJobs is not set or is less than or equal to zero, it defaults to the number of CPU cores.
-func (p ParallelismConfig) GetMaxJobs() int {
-	if p.MaxJobs <= 0 {
+func (p *ParallelismConfig) GetMaxJobs() int {
+	if p == nil || p.MaxJobs == 0 {
 		return runtime.NumCPU()
 	}
 	return p.MaxJobs

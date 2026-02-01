@@ -118,11 +118,5 @@ func (e *moduleError) Unwrap() error {
 // Note: CLI flags are merged into config during PersistentPreRunE,
 // so parallelismCfg already reflects any --max-parallel override.
 func RunOnModulesParallel(modules []ModuleInfo, parallelismCfg *config.ParallelismConfig, fn ModuleRunner) error {
-	var maxJobs int
-	if parallelismCfg != nil {
-		maxJobs = parallelismCfg.GetMaxJobs()
-	} else {
-		maxJobs = config.ParallelismConfig{}.GetMaxJobs() // defaults to NumCPU
-	}
-	return runOnModules(modules, parallelFlag, maxJobs, os.Stdout, os.Stderr, fn)
+	return runOnModules(modules, parallelFlag, parallelismCfg.GetMaxJobs(), os.Stdout, os.Stderr, fn)
 }
