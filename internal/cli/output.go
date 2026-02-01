@@ -81,9 +81,6 @@ func (w *prefixedWriter) Write(p []byte) (n int, err error) {
 			if _, writeBackErr := w.buf.Write(line); writeBackErr != nil {
 				return written, fmt.Errorf("failed to re-buffer partial line: %w", writeBackErr)
 			}
-			if readErr != nil {
-				return written, fmt.Errorf("failed to read buffered line: %w", readErr)
-			}
 			break
 		}
 		// Write the complete line with prefix
