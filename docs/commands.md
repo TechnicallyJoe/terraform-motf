@@ -115,7 +115,7 @@ motf fmt --changed --parallel
 # Check formatting without modifying
 motf fmt storage-account -a -check
 
-# Check formatting on all changed modules in parallel
+# Check formatting on all changed modules without modifying (parallel mode)
 motf fmt --changed -p -a -check
 ```
 
