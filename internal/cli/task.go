@@ -50,14 +50,7 @@ Examples:
 				return cobra.MaximumNArgs(0)(cmd, args)
 			}
 			return runOnChangedModulesWithPath(func(moduleAbsPath string, stdout, stderr io.Writer) error {
-				env := tasks.NewEnvBuilder().
-					WithGitRoot(gitRoot).
-					WithModulePath(moduleAbsPath).
-					WithModuleName(tasks.ModuleNameFromPath(moduleAbsPath)).
-					WithConfigPath(cfg.ConfigPath).
-					WithBinary(cfg.Binary).
-					Build()
-				taskRunner := tasks.NewRunner(cfg.Tasks, env)
+				taskRunner := tasks.NewRunner(cfg.Tasks, buildTaskEnv(gitRoot, moduleAbsPath))
 				return taskRunner.RunWithOutput(taskFlag, moduleAbsPath, stdout, stderr)
 			})
 		}
@@ -68,17 +61,8 @@ Examples:
 			return err
 		}
 
-		// Build environment with built-in variables
-		env := tasks.NewEnvBuilder().
-			WithGitRoot(gitRoot).
-			WithModulePath(targetPath).
-			WithModuleName(tasks.ModuleNameFromPath(targetPath)).
-			WithConfigPath(cfg.ConfigPath).
-			WithBinary(cfg.Binary).
-			Build()
-
 		// Run the task
-		taskRunner := tasks.NewRunner(cfg.Tasks, env)
+		taskRunner := tasks.NewRunner(cfg.Tasks, buildTaskEnv(gitRoot, targetPath))
 		return taskRunner.Run(taskFlag, targetPath)
 	},
 }
@@ -107,6 +91,17 @@ func listTasks() error {
 		}
 	}
 	return nil
+}
+
+// buildTaskEnv creates the environment variables for task execution.
+func buildTaskEnv(gitRoot, modulePath string) []string {
+	return tasks.NewEnvBuilder().
+		WithGitRoot(gitRoot).
+		WithModulePath(modulePath).
+		WithModuleName(tasks.ModuleNameFromPath(modulePath)).
+		WithConfigPath(cfg.ConfigPath).
+		WithBinary(cfg.Binary).
+		Build()
 }
 
 func init() {
