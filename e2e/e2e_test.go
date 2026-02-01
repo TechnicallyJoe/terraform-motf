@@ -84,7 +84,15 @@ func createModules(t *testing.T, dir string, names []string) {
 		if err := os.MkdirAll(moduleDir, 0755); err != nil {
 			t.Fatalf("failed to create module dir %s: %v", name, err)
 		}
-		content := fmt.Sprintf("# %s\nterraform {}\n", name)
+		content := fmt.Sprintf(`# %s
+terraform {
+  required_version = ">= 1.0.0"
+}
+
+output "module_name" {
+  value = "%s"
+}
+`, name, name)
 		if err := os.WriteFile(filepath.Join(moduleDir, "main.tf"), []byte(content), 0644); err != nil {
 			t.Fatalf("failed to write tf file for %s: %v", name, err)
 		}
