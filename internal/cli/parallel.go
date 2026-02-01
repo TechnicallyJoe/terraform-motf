@@ -111,13 +111,13 @@ func (e *moduleError) Unwrap() error {
 	return e.err
 }
 
-// RunOnModulesWithFlags is a convenience function that uses the global
+// RunOnModulesParallel is a convenience function that uses the global
 // parallelFlag along with config to run on modules.
 // This is the primary entry point for commands using --changed.
 //
 // Note: CLI flags are merged into config during PersistentPreRunE,
 // so parallelismCfg already reflects any --max-parallel override.
-func RunOnModulesWithFlags(modules []ModuleInfo, parallelismCfg *config.ParallelismConfig, fn ModuleRunner) error {
+func RunOnModulesParallel(modules []ModuleInfo, parallelismCfg *config.ParallelismConfig, fn ModuleRunner) error {
 	var maxJobs int
 	if parallelismCfg != nil {
 		maxJobs = parallelismCfg.GetMaxJobs()

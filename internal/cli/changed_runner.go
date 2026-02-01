@@ -36,7 +36,7 @@ func runOnChangedModules(fn func(mod ModuleInfo, stdout, stderr io.Writer) error
 		parallelismCfg = cfg.Parallelism
 	}
 
-	return RunOnModulesWithFlags(modules, parallelismCfg, fn)
+	return RunOnModulesParallel(modules, parallelismCfg, fn)
 }
 
 // runOnChangedModulesWithPath is a convenience wrapper for commands that need
