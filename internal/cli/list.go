@@ -75,7 +75,7 @@ func runList(cmd *cobra.Command, args []string) error {
 			modules = filtered
 		}
 
-		// Add version info (detectChangedModules doesn't include it)
+		// Populate version info for display
 		for i := range modules {
 			absPath := filepath.Join(basePath, modules[i].Path)
 			modules[i].Version = spacelift.ReadModuleVersion(absPath)

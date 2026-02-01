@@ -59,7 +59,8 @@ func runOnChangedModulesWithPath(fn func(moduleAbsPath string, stdout, stderr io
 }
 
 // detectChangedModules returns modules that have changed compared to baseRef.
-// If baseRef is empty, it auto-detects the default branch (origin/HEAD then origin/main/master).
+// If baseRef is empty, it auto-detects the default branch by checking origin/HEAD,
+// then falling back to origin/main or origin/master.
 func detectChangedModules(baseRef string) ([]ModuleInfo, error) {
 	// Get the git repository root
 	repoRoot, err := git.GetRepoRoot()
