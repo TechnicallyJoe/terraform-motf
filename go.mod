@@ -3,7 +3,7 @@ module github.com/TechnicallyJoe/terraform-motf
 go 1.25
 
 require (
-	github.com/go-git/go-git/v5 v5.16.4
+	github.com/go-git/go-git/v5 v5.16.5
 	github.com/hashicorp/terraform-config-inspect v0.0.0-20260120201749-785479628bd7
 	github.com/spf13/cobra v1.10.2
 	gopkg.in/yaml.v3 v3.0.1
