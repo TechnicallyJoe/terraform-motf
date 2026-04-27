@@ -55,7 +55,7 @@ motf val k8s-argocd          # Finds bases/k8s-argocd/
 motf init prod-infra         # Finds projects/prod-infra/
 ```
 
-**Skipped directories:** `.terraform`, `.git`, `examples`, `modules`, `tests`, `.spacelift`
+**Skipped directories:** `.terraform`, `.git`, `node_modules`, `examples`, `modules`, `tests`, `.spacelift`
 
 ## Quick Start
 

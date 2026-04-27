@@ -364,6 +364,30 @@ func TestLoad_InvalidBinary(t *testing.T) {
 	}
 }
 
+func TestLoad_InvalidTestEngine(t *testing.T) {
+	tmpDir := t.TempDir()
+
+	// Create .git directory
+	gitDir := filepath.Join(tmpDir, ".git")
+	if err := os.Mkdir(gitDir, 0755); err != nil {
+		t.Fatalf("failed to create .git directory: %v", err)
+	}
+
+	// Create .motf.yml with invalid test engine
+	configContent := `test:
+  engine: invalid
+`
+	configPath := filepath.Join(tmpDir, ".motf.yml")
+	if err := os.WriteFile(configPath, []byte(configContent), 0644); err != nil {
+		t.Fatalf("failed to create config file: %v", err)
+	}
+
+	_, err := Load(tmpDir, "")
+	if err == nil {
+		t.Error("expected error for invalid test engine, got nil")
+	}
+}
+
 func TestLoad_TestConfigDefaults(t *testing.T) {
 	tmpDir := t.TempDir()
 

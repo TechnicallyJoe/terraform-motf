@@ -535,6 +535,19 @@ built:  2025-01-15T10:30:00Z
 
 ---
 
+## completion
+
+Generate shell autocompletion scripts. Supports bash, zsh, fish, and powershell.
+
+```bash
+motf completion bash > ~/.bash_completion.d/motf
+motf completion zsh > "${fpath[1]}/_motf"
+motf completion fish > ~/.config/fish/completions/motf.fish
+motf completion powershell > motf.ps1
+```
+
+---
+
 ## Exit Codes
 
 | Code | Meaning |
