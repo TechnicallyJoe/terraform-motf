@@ -11,18 +11,23 @@ import (
 	"gopkg.in/yaml.v3"
 )
 
-// validBinaries contains allowed terraform/tofu binary values.
-var validBinaries = map[string]struct{}{
-	"terraform": {},
-	"tofu":      {},
+// validBinaryNames is the single source of truth for allowed binary values.
+var validBinaryNames = []string{"terraform", "tofu"}
+
+// validTestEngineNames is the single source of truth for allowed test engine values.
+var validTestEngineNames = []string{"terratest", "terraform", "tofu"}
+
+// toSet converts a string slice to a set for O(1) lookups.
+func toSet(values []string) map[string]struct{} {
+	m := make(map[string]struct{}, len(values))
+	for _, v := range values {
+		m[v] = struct{}{}
+	}
+	return m
 }
 
-// validTestEngines contains allowed test engine values.
-var validTestEngines = map[string]struct{}{
-	"terratest": {},
-	"terraform": {},
-	"tofu":      {},
-}
+var validBinaries = toSet(validBinaryNames)
+var validTestEngines = toSet(validTestEngineNames)
 
 // IsValidBinary reports whether binary is an allowed terraform/tofu binary value.
 func IsValidBinary(binary string) bool {
@@ -31,9 +36,7 @@ func IsValidBinary(binary string) bool {
 }
 
 // ValidBinaryNames returns the allowed terraform/tofu binary values.
-func ValidBinaryNames() []string {
-	return []string{"terraform", "tofu"}
-}
+func ValidBinaryNames() []string { return append([]string(nil), validBinaryNames...) }
 
 // IsValidTestEngine reports whether engine is an allowed test engine value.
 func IsValidTestEngine(engine string) bool {
@@ -42,9 +45,7 @@ func IsValidTestEngine(engine string) bool {
 }
 
 // ValidTestEngineNames returns the allowed test engine values.
-func ValidTestEngineNames() []string {
-	return []string{"terratest", "terraform", "tofu"}
-}
+func ValidTestEngineNames() []string { return append([]string(nil), validTestEngineNames...) }
 
 // quotedJoin formats a slice as "'a', 'b', or 'c'".
 func quotedJoin(values []string) string {
