@@ -5,22 +5,45 @@ import (
 	"os"
 	"path/filepath"
 	"runtime"
+	"strings"
 
 	"github.com/TechnicallyJoe/terraform-motf/internal/tasks"
 	"gopkg.in/yaml.v3"
 )
 
-// ValidBinaries contains allowed terraform/tofu binary values
-var ValidBinaries = map[string]bool{
-	"terraform": true,
-	"tofu":      true,
+// validBinaries contains allowed terraform/tofu binary values.
+var validBinaries = map[string]struct{}{
+	"terraform": {},
+	"tofu":      {},
 }
 
-// ValidTestEngines contains allowed test engine values
-var ValidTestEngines = map[string]bool{
-	"terratest": true,
-	"terraform": true,
-	"tofu":      true,
+// validTestEngines contains allowed test engine values.
+var validTestEngines = map[string]struct{}{
+	"terratest": {},
+	"terraform": {},
+	"tofu":      {},
+}
+
+// IsValidBinary reports whether binary is an allowed terraform/tofu binary value.
+func IsValidBinary(binary string) bool {
+	_, ok := validBinaries[binary]
+	return ok
+}
+
+// ValidBinaryNames returns the allowed terraform/tofu binary values.
+func ValidBinaryNames() []string {
+	return []string{"terraform", "tofu"}
+}
+
+// IsValidTestEngine reports whether engine is an allowed test engine value.
+func IsValidTestEngine(engine string) bool {
+	_, ok := validTestEngines[engine]
+	return ok
+}
+
+// ValidTestEngineNames returns the allowed test engine values.
+func ValidTestEngineNames() []string {
+	return []string{"terratest", "terraform", "tofu"}
 }
 
 // TestConfig represents the test configuration section
@@ -123,8 +146,8 @@ func Load(startDir string, configPath string) (*Config, error) {
 			}
 
 			// Validate binary
-			if !ValidBinaries[cfg.Binary] {
-				return nil, fmt.Errorf("invalid binary '%s' in config: must be 'terraform' or 'tofu'", cfg.Binary)
+			if !IsValidBinary(cfg.Binary) {
+				return nil, fmt.Errorf("invalid binary '%s' in config: must be %s", cfg.Binary, strings.Join(ValidBinaryNames(), " or "))
 			}
 
 			// Ensure Test config has defaults if not set (YAML can override to nil)
@@ -135,8 +158,8 @@ func Load(startDir string, configPath string) (*Config, error) {
 			}
 
 			// Validate test engine
-			if !ValidTestEngines[cfg.Test.Engine] {
-				return nil, fmt.Errorf("invalid test engine '%s' in config: must be 'terratest', 'terraform', or 'tofu'", cfg.Test.Engine)
+			if !IsValidTestEngine(cfg.Test.Engine) {
+				return nil, fmt.Errorf("invalid test engine '%s' in config: must be %s", cfg.Test.Engine, strings.Join(ValidTestEngineNames(), ", "))
 			}
 
 			// Store the config file path
@@ -210,8 +233,8 @@ func loadConfigFile(cfg *Config, configPath string, gitRoot string) (*Config, er
 	}
 
 	// Validate binary
-	if !ValidBinaries[cfg.Binary] {
-		return nil, fmt.Errorf("invalid binary '%s' in config: must be 'terraform' or 'tofu'", cfg.Binary)
+	if !IsValidBinary(cfg.Binary) {
+		return nil, fmt.Errorf("invalid binary '%s' in config: must be %s", cfg.Binary, strings.Join(ValidBinaryNames(), " or "))
 	}
 
 	// Ensure Test config has defaults if not set
@@ -222,8 +245,8 @@ func loadConfigFile(cfg *Config, configPath string, gitRoot string) (*Config, er
 	}
 
 	// Validate test engine
-	if !ValidTestEngines[cfg.Test.Engine] {
-		return nil, fmt.Errorf("invalid test engine '%s' in config: must be 'terratest', 'terraform', or 'tofu'", cfg.Test.Engine)
+	if !IsValidTestEngine(cfg.Test.Engine) {
+		return nil, fmt.Errorf("invalid test engine '%s' in config: must be %s", cfg.Test.Engine, strings.Join(ValidTestEngineNames(), ", "))
 	}
 
 	cfg.ConfigPath = cleanPath

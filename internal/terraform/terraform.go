@@ -103,8 +103,8 @@ func (r *Runner) RunTestWithOutput(dir string, stdout, stderr io.Writer, extraAr
 	var cmd *exec.Cmd
 	var cmdArgs []string
 
-	if !config.ValidTestEngines[r.config.Test.Engine] {
-		return fmt.Errorf("unsupported test engine '%s': must be one of: terratest, terraform, tofu", r.config.Test.Engine)
+	if !config.IsValidTestEngine(r.config.Test.Engine) {
+		return fmt.Errorf("unsupported test engine '%s': must be one of: %s", r.config.Test.Engine, strings.Join(config.ValidTestEngineNames(), ", "))
 	}
 
 	switch r.config.Test.Engine {
