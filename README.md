@@ -56,7 +56,6 @@ Examples:
   motf init storage-account -a -upgrade -a -reconfigure  # Run init with extra args
 
 Available Commands:
-  changed     List modules with changes compared to a base branch
   completion  Generate the autocompletion script for the specified shell
   config      Show current configuration
   describe    Describe the interface of a Terraform module

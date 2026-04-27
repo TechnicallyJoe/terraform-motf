@@ -72,7 +72,7 @@ in a structured monorepo.`,
 		}
 
 		// Merge CLI flags into config (CLI takes priority)
-		// This centralizes the "CLI overrides config" logic in one place.
+		// Centralize the "CLI overrides config" logic here
 		if cmd.Flags().Changed("max-parallel") {
 			if cfg.Parallelism == nil {
 				cfg.Parallelism = &config.ParallelismConfig{}
