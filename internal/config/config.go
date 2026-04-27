@@ -5,10 +5,78 @@ import (
 	"os"
 	"path/filepath"
 	"runtime"
+	"strings"
 
 	"github.com/TechnicallyJoe/terraform-motf/internal/tasks"
 	"gopkg.in/yaml.v3"
 )
+
+// validBinaryNames is the single source of truth for allowed binary values.
+var validBinaryNames = []string{"terraform", "tofu"}
+
+// validTestEngineNames is the single source of truth for allowed test engine values.
+var validTestEngineNames = []string{"terratest", "terraform", "tofu"}
+
+// toSet converts a string slice to a set for O(1) lookups.
+func toSet(values []string) map[string]struct{} {
+	m := make(map[string]struct{}, len(values))
+	for _, v := range values {
+		m[v] = struct{}{}
+	}
+	return m
+}
+
+var validBinaries = toSet(validBinaryNames)
+var validTestEngines = toSet(validTestEngineNames)
+
+// IsValidBinary reports whether binary is an allowed terraform/tofu binary value.
+func IsValidBinary(binary string) bool {
+	_, ok := validBinaries[binary]
+	return ok
+}
+
+// ValidBinaryNames returns the allowed terraform/tofu binary values.
+func ValidBinaryNames() []string { return append([]string(nil), validBinaryNames...) }
+
+// IsValidTestEngine reports whether engine is an allowed test engine value.
+func IsValidTestEngine(engine string) bool {
+	_, ok := validTestEngines[engine]
+	return ok
+}
+
+// ValidTestEngineNames returns the allowed test engine values.
+func ValidTestEngineNames() []string { return append([]string(nil), validTestEngineNames...) }
+
+// quotedJoin formats a slice as "'a', 'b', or 'c'".
+func quotedJoin(values []string) string {
+	quoted := make([]string, len(values))
+	for i, v := range values {
+		quoted[i] = "'" + v + "'"
+	}
+	if len(quoted) <= 2 {
+		return strings.Join(quoted, " or ")
+	}
+	return strings.Join(quoted[:len(quoted)-1], ", ") + ", or " + quoted[len(quoted)-1]
+}
+
+// validateConfig validates and applies defaults to a parsed Config.
+func validateConfig(cfg *Config) error {
+	if !IsValidBinary(cfg.Binary) {
+		return fmt.Errorf("invalid binary '%s' in config: must be %s", cfg.Binary, quotedJoin(ValidBinaryNames()))
+	}
+
+	if cfg.Test == nil {
+		cfg.Test = &TestConfig{Engine: "terratest", Args: ""}
+	} else if cfg.Test.Engine == "" {
+		cfg.Test.Engine = "terratest"
+	}
+
+	if !IsValidTestEngine(cfg.Test.Engine) {
+		return fmt.Errorf("invalid test engine '%s' in config: must be %s", cfg.Test.Engine, quotedJoin(ValidTestEngineNames()))
+	}
+
+	return nil
+}
 
 // TestConfig represents the test configuration section
 type TestConfig struct {
@@ -109,21 +177,8 @@ func Load(startDir string, configPath string) (*Config, error) {
 				return nil, fmt.Errorf("failed to parse config file: %w", err)
 			}
 
-			// Validate binary
-			if cfg.Binary != "terraform" && cfg.Binary != "tofu" {
-				return nil, fmt.Errorf("invalid binary '%s' in config: must be 'terraform' or 'tofu'", cfg.Binary)
-			}
-
-			// Ensure Test config has defaults if not set
-			if cfg.Test == nil {
-				cfg.Test = &TestConfig{
-					Engine: "terratest",
-					Args:   "",
-				}
-			} else {
-				if cfg.Test.Engine == "" {
-					cfg.Test.Engine = "terratest"
-				}
+			if err := validateConfig(cfg); err != nil {
+				return nil, err
 			}
 
 			// Store the config file path
@@ -196,16 +251,8 @@ func loadConfigFile(cfg *Config, configPath string, gitRoot string) (*Config, er
 		return nil, fmt.Errorf("failed to parse config file: %w", err)
 	}
 
-	// Validate binary
-	if cfg.Binary != "terraform" && cfg.Binary != "tofu" {
-		return nil, fmt.Errorf("invalid binary '%s' in config: must be 'terraform' or 'tofu'", cfg.Binary)
-	}
-
-	// Ensure Test config has defaults if not set
-	if cfg.Test == nil {
-		cfg.Test = &TestConfig{Engine: "terratest", Args: ""}
-	} else if cfg.Test.Engine == "" {
-		cfg.Test.Engine = "terratest"
+	if err := validateConfig(cfg); err != nil {
+		return nil, err
 	}
 
 	cfg.ConfigPath = cleanPath
