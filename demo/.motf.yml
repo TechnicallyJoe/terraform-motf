@@ -29,4 +29,4 @@ tasks:
   ls-git-root:
     description: "ls on the root path"
     shell: bash
-    command: "ls -la $MOTF_GIT_ROOT"
+    command: "ls -la '$MOTF_GIT_ROOT'"
