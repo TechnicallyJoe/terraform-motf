@@ -46,6 +46,37 @@ func ValidTestEngineNames() []string {
 	return []string{"terratest", "terraform", "tofu"}
 }
 
+// quotedJoin formats a slice as "'a', 'b', or 'c'".
+func quotedJoin(values []string) string {
+	quoted := make([]string, len(values))
+	for i, v := range values {
+		quoted[i] = "'" + v + "'"
+	}
+	if len(quoted) <= 2 {
+		return strings.Join(quoted, " or ")
+	}
+	return strings.Join(quoted[:len(quoted)-1], ", ") + ", or " + quoted[len(quoted)-1]
+}
+
+// validateConfig validates and applies defaults to a parsed Config.
+func validateConfig(cfg *Config) error {
+	if !IsValidBinary(cfg.Binary) {
+		return fmt.Errorf("invalid binary '%s' in config: must be %s", cfg.Binary, quotedJoin(ValidBinaryNames()))
+	}
+
+	if cfg.Test == nil {
+		cfg.Test = &TestConfig{Engine: "terratest", Args: ""}
+	} else if cfg.Test.Engine == "" {
+		cfg.Test.Engine = "terratest"
+	}
+
+	if !IsValidTestEngine(cfg.Test.Engine) {
+		return fmt.Errorf("invalid test engine '%s' in config: must be %s", cfg.Test.Engine, quotedJoin(ValidTestEngineNames()))
+	}
+
+	return nil
+}
+
 // TestConfig represents the test configuration section
 type TestConfig struct {
 	Engine string `yaml:"engine"`
@@ -145,21 +176,8 @@ func Load(startDir string, configPath string) (*Config, error) {
 				return nil, fmt.Errorf("failed to parse config file: %w", err)
 			}
 
-			// Validate binary
-			if !IsValidBinary(cfg.Binary) {
-				return nil, fmt.Errorf("invalid binary '%s' in config: must be %s", cfg.Binary, strings.Join(ValidBinaryNames(), " or "))
-			}
-
-			// Ensure Test config has defaults if not set (YAML can override to nil)
-			if cfg.Test == nil {
-				cfg.Test = &TestConfig{Engine: "terratest", Args: ""}
-			} else if cfg.Test.Engine == "" {
-				cfg.Test.Engine = "terratest"
-			}
-
-			// Validate test engine
-			if !IsValidTestEngine(cfg.Test.Engine) {
-				return nil, fmt.Errorf("invalid test engine '%s' in config: must be %s", cfg.Test.Engine, strings.Join(ValidTestEngineNames(), ", "))
+			if err := validateConfig(cfg); err != nil {
+				return nil, err
 			}
 
 			// Store the config file path
@@ -232,21 +250,8 @@ func loadConfigFile(cfg *Config, configPath string, gitRoot string) (*Config, er
 		return nil, fmt.Errorf("failed to parse config file: %w", err)
 	}
 
-	// Validate binary
-	if !IsValidBinary(cfg.Binary) {
-		return nil, fmt.Errorf("invalid binary '%s' in config: must be %s", cfg.Binary, strings.Join(ValidBinaryNames(), " or "))
-	}
-
-	// Ensure Test config has defaults if not set
-	if cfg.Test == nil {
-		cfg.Test = &TestConfig{Engine: "terratest", Args: ""}
-	} else if cfg.Test.Engine == "" {
-		cfg.Test.Engine = "terratest"
-	}
-
-	// Validate test engine
-	if !IsValidTestEngine(cfg.Test.Engine) {
-		return nil, fmt.Errorf("invalid test engine '%s' in config: must be %s", cfg.Test.Engine, strings.Join(ValidTestEngineNames(), ", "))
+	if err := validateConfig(cfg); err != nil {
+		return nil, err
 	}
 
 	cfg.ConfigPath = cleanPath
