@@ -165,7 +165,7 @@ demo/
 
 ### Module Discovery
 - Modules must contain `.tf` or `.tf.json` files to be recognized
-- Skip directories: `.terraform`, `.git`, `node_modules`, `examples`, `modules`, `tests`
+- Skip directories: `.terraform`, `.git`, `.spacelift`, `node_modules`, `examples`, `modules`, `tests`
 - Name clashes (same module name in multiple locations) produce explicit errors
 
 ### Configuration
