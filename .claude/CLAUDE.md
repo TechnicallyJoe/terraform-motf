@@ -1,4 +1,4 @@
-# Copilot Instructions for motf
+# Claude Code Instructions for motf
 
 ## Project Overview
 
@@ -119,10 +119,10 @@ pre-commit run golangci-lint-repo-mod --all-files
 ### Error Handling
 Always wrap errors with context using `fmt.Errorf("...: %w", err)`:
 ```go
-// ✓ Correct - wraps with context
+// Correct - wraps with context
 return fmt.Errorf("failed to read config file: %w", err)
 
-// ✗ Avoid - loses error chain
+// Avoid - loses error chain
 return fmt.Errorf("failed to read config file: %s", err.Error())
 ```
 
@@ -183,16 +183,16 @@ demo/
 
 | File | Purpose |
 |------|---------|
-| [cmd/motf/main.go](cmd/motf/main.go) | Main entrypoint |
-| [internal/cli/root.go](internal/cli/root.go) | CLI root, global flags, config loading |
-| [internal/cli/helpers.go](internal/cli/helpers.go) | `resolveTargetPath()`, module type detection |
-| [internal/cli/types.go](internal/cli/types.go) | Constants for module dirs/types, `ModuleInfo` struct |
-| [internal/cli/changed_runner.go](internal/cli/changed_runner.go) | Change detection logic and `--changed` flag helper |
-| [internal/finder/finder.go](internal/finder/finder.go) | `FindModule()`, `ListAllModules()` |
-| [internal/git/diff.go](internal/git/diff.go) | Git change detection with go-git library |
-| [internal/tasks/tasks.go](internal/tasks/tasks.go) | Custom task loading from `.motf.yml` |
-| [internal/terraform/terraform.go](internal/terraform/terraform.go) | `Runner` with `RunInit/Fmt/Validate/Test/Plan` |
-| [demo/](demo/) | Test fixture - always test changes against this |
+| `cmd/motf/main.go` | Main entrypoint |
+| `internal/cli/root.go` | CLI root, global flags, config loading |
+| `internal/cli/helpers.go` | `resolveTargetPath()`, module type detection |
+| `internal/cli/types.go` | Constants for module dirs/types, `ModuleInfo` struct |
+| `internal/cli/changed_runner.go` | Change detection logic and `--changed` flag helper |
+| `internal/finder/finder.go` | `FindModule()`, `ListAllModules()` |
+| `internal/git/diff.go` | Git change detection with go-git library |
+| `internal/tasks/tasks.go` | Custom task loading from `.motf.yml` |
+| `internal/terraform/terraform.go` | `Runner` with `RunInit/Fmt/Validate/Test/Plan` |
+| `demo/` | Test fixture - always test changes against this |
 
 ## Common Tasks
 
@@ -203,10 +203,10 @@ demo/
 4. Add e2e test case in `e2e/e2e_test.go`
 
 ### Modifying Module Discovery
-Edit [internal/finder/finder.go](internal/finder/finder.go). Update `skipDirs` map if new directories should be excluded.
+Edit `internal/finder/finder.go`. Update `skipDirs` map if new directories should be excluded.
 
 ### Adding Configuration Options
-1. Add field to `Config` struct in [internal/config/config.go](internal/config/config.go)
+1. Add field to `Config` struct in `internal/config/config.go`
 2. Update `DefaultConfig()` with default value
 3. Add validation in `Load()` if needed
 
@@ -268,9 +268,9 @@ The `/docs/` directory contains user-facing documentation that is automatically 
 - Reference images with `assets/` prefix: `![demo](assets/demo.gif)`
 - Keep README.md high-level with links to wiki for detailed documentation
 
-## Maintaining This Document
+## Maintaining These Instructions
 
-This file and `CLAUDE.md` share the same project conventions. CLAUDE.md has additional Claude Code-specific guidance below. When updating project conventions, update **both files**.
+This file and `.github/copilot-instructions.md` share the same project conventions. CLAUDE.md has additional Claude Code-specific guidance below. When updating project conventions, update **both files**.
 
 Examples of patterns worth documenting:
 
@@ -283,3 +283,17 @@ Examples of patterns worth documenting:
 - Updates to commit message conventions or release processes
 - Update to documentation
 - New commands added to the CLI (motf)
+
+## Claude Code Guidelines
+
+### When in Doubt, Ask
+- If a requirement is ambiguous, ask the user before implementing
+- If multiple approaches exist, present options with trade-offs
+- If a change could affect behavior beyond the immediate scope, confirm first
+- Never guess at business logic -- ask
+
+### Development Workflow
+- Run `go build ./...` after making changes to verify compilation
+- Run `go test ./...` to verify tests pass before considering work done
+- Run `golangci-lint run` to check for lint issues
+- Use `/test`, `/lint`, `/build`, `/e2e`, `/pr-ready` slash commands for common tasks
