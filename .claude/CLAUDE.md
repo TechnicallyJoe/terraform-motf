@@ -293,7 +293,8 @@ Examples of patterns worth documenting:
 - Never guess at business logic -- ask
 
 ### Development Workflow
-- Run `go build ./...` after making changes to verify compilation
+- Run `go build -o motf ./cmd/motf` when you need to build the CLI binary
+- Run `go build ./...` after making changes as a compile check across all packages
 - Run `go test ./...` to verify tests pass before considering work done
 - Run `golangci-lint run` to check for lint issues
 - Use `/test`, `/lint`, `/build`, `/e2e`, `/pr-ready` slash commands for common tasks
