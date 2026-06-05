@@ -132,10 +132,20 @@ func resolveChangedModules(basePath, repoRoot string, changedPaths []string) []M
 		absPath := filepath.Join(repoRoot, modulePath)
 
 		// Check if this directory contains terraform files
-		if !finder.HasTerraformFiles(absPath) {
-			// The changed file might be in a subdirectory (like tests/ or examples/)
-			// Walk up to find the actual module
-			absPath = findParentModule(absPath, basePath)
+		hasTF := finder.HasTerraformFiles(absPath)
+
+		// Even if the directory has .tf files, if it's inside a skipDir
+		// (e.g. examples/basic), it's not a standalone module — walk up.
+		inSkipDir := finder.PathContainsSkipDir(modulePath)
+
+		if !hasTF || inSkipDir {
+			startFrom := absPath
+			if hasTF && inSkipDir {
+				// Directory has .tf files but is inside a skip dir — start
+				// from parent so findParentModule doesn't return this dir.
+				startFrom = filepath.Dir(absPath)
+			}
+			absPath = findParentModule(startFrom, basePath)
 			if absPath == "" {
 				continue
 			}
@@ -178,10 +188,11 @@ func resolveChangedModules(basePath, repoRoot string, changedPaths []string) []M
 }
 
 // findParentModule walks up the directory tree to find a parent that contains .tf files
+// and is not inside a skipDir.
 func findParentModule(startPath, stopPath string) string {
 	current := startPath
 	for {
-		if finder.HasTerraformFiles(current) {
+		if finder.HasTerraformFiles(current) && !finder.IsSkipDir(filepath.Base(current)) {
 			return current
 		}
 

@@ -1,6 +1,7 @@
 package terraform
 
 import (
+	"bytes"
 	"fmt"
 	"io"
 	"os"
@@ -143,7 +144,22 @@ func (r *Runner) RunTestWithOutput(dir string, stdout, stderr io.Writer, extraAr
 
 	cmd.Dir = dir
 	cmd.Stdout = stdout
-	cmd.Stderr = stderr
 
-	return cmd.Run()
+	switch r.config.Test.Engine {
+	case "terratest":
+		// Capture stderr to detect "matched no packages" from go test ./...
+		var stderrBuf bytes.Buffer
+		cmd.Stderr = io.MultiWriter(stderr, &stderrBuf)
+
+		if err := cmd.Run(); err != nil {
+			if strings.Contains(stderrBuf.String(), "matched no packages") {
+				return nil
+			}
+			return err
+		}
+		return nil
+	default:
+		cmd.Stderr = stderr
+		return cmd.Run()
+	}
 }

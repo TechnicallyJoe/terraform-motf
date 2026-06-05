@@ -130,3 +130,87 @@ func TestResolveChangedModules(t *testing.T) {
 		})
 	}
 }
+
+func TestResolveChangedModules_SkipsDirs(t *testing.T) {
+	tmpDir := t.TempDir()
+
+	// Create a module with examples/ and tests/ subdirectories that contain .tf files
+	moduleDir := filepath.Join(tmpDir, "components", "azurerm", "storage-account-test")
+	examplesBasic := filepath.Join(moduleDir, "examples", "basic")
+	examplesPrivateLink := filepath.Join(moduleDir, "examples", "private-link")
+	testsDir := filepath.Join(moduleDir, "tests")
+
+	for _, dir := range []string{moduleDir, examplesBasic, examplesPrivateLink, testsDir} {
+		if err := os.MkdirAll(dir, 0755); err != nil {
+			t.Fatal(err)
+		}
+	}
+
+	// All directories have .tf files
+	for _, dir := range []string{moduleDir, examplesBasic, examplesPrivateLink} {
+		if err := os.WriteFile(filepath.Join(dir, "main.tf"), []byte("# terraform"), 0644); err != nil {
+			t.Fatal(err)
+		}
+	}
+
+	// tests/ has a go file but no .tf
+	if err := os.WriteFile(filepath.Join(testsDir, "storage_test.go"), []byte("package test"), 0644); err != nil {
+		t.Fatal(err)
+	}
+
+	withConfig(t, &config.Config{Root: "", Binary: "terraform"})
+
+	tests := []struct {
+		name         string
+		changedPaths []string
+		wantNames    []string
+	}{
+		{
+			name:         "examples/basic resolves to parent module",
+			changedPaths: []string{"components/azurerm/storage-account-test/examples/basic"},
+			wantNames:    []string{"storage-account-test"},
+		},
+		{
+			name:         "examples/private-link resolves to parent module",
+			changedPaths: []string{"components/azurerm/storage-account-test/examples/private-link"},
+			wantNames:    []string{"storage-account-test"},
+		},
+		{
+			name:         "tests/ resolves to parent module",
+			changedPaths: []string{"components/azurerm/storage-account-test/tests"},
+			wantNames:    []string{"storage-account-test"},
+		},
+		{
+			name:         "multiple skipDir paths deduplicate to parent",
+			changedPaths: []string{"components/azurerm/storage-account-test/examples/basic", "components/azurerm/storage-account-test/examples/private-link"},
+			wantNames:    []string{"storage-account-test"},
+		},
+		{
+			name:         "parent module itself still resolves directly",
+			changedPaths: []string{"components/azurerm/storage-account-test"},
+			wantNames:    []string{"storage-account-test"},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			modules := resolveChangedModules(tmpDir, tmpDir, tt.changedPaths)
+
+			var gotNames []string
+			for _, m := range modules {
+				gotNames = append(gotNames, m.Name)
+			}
+
+			if len(gotNames) != len(tt.wantNames) {
+				t.Errorf("got %d modules %v, want %d %v", len(gotNames), gotNames, len(tt.wantNames), tt.wantNames)
+				return
+			}
+
+			for i, name := range gotNames {
+				if name != tt.wantNames[i] {
+					t.Errorf("module[%d] = %s, want %s", i, name, tt.wantNames[i])
+				}
+			}
+		})
+	}
+}

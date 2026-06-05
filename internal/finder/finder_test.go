@@ -405,6 +405,55 @@ func TestListAllModules_SkipsTerraformDir(t *testing.T) {
 	}
 }
 
+func TestIsSkipDir(t *testing.T) {
+	tests := []struct {
+		name string
+		want bool
+	}{
+		{"examples", true},
+		{"tests", true},
+		{"modules", true},
+		{".terraform", true},
+		{".git", true},
+		{"node_modules", true},
+		{".spacelift", true},
+		{"components", false},
+		{"azurerm", false},
+		{"src", false},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if got := IsSkipDir(tt.name); got != tt.want {
+				t.Errorf("IsSkipDir(%q) = %v, want %v", tt.name, got, tt.want)
+			}
+		})
+	}
+}
+
+func TestPathContainsSkipDir(t *testing.T) {
+	tests := []struct {
+		path string
+		want bool
+	}{
+		{"components/azurerm/storage-account/examples/basic", true},
+		{"components/azurerm/storage-account/tests", true},
+		{"components/azurerm/storage-account/modules/internal", true},
+		{"components/azurerm/storage-account", false},
+		{"projects/prod-infra", false},
+		{"examples/basic", true},
+		{"tests", true},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.path, func(t *testing.T) {
+			if got := PathContainsSkipDir(tt.path); got != tt.want {
+				t.Errorf("PathContainsSkipDir(%q) = %v, want %v", tt.path, got, tt.want)
+			}
+		})
+	}
+}
+
 func TestFindModule_SkipsGitDir(t *testing.T) {
 	tmpDir := t.TempDir()
 

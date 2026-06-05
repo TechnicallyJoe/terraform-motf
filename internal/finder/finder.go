@@ -17,6 +17,24 @@ var skipDirs = map[string]bool{
 	".spacelift":   true,
 }
 
+// IsSkipDir reports whether name is a directory that should be skipped during
+// module discovery (e.g. "examples", "tests", "modules").
+func IsSkipDir(name string) bool {
+	return skipDirs[name]
+}
+
+// PathContainsSkipDir reports whether any segment of a filepath matches a
+// skipDirs entry. This is used to detect paths like "modules/foo/examples/basic"
+// that should not be treated as standalone modules.
+func PathContainsSkipDir(path string) bool {
+	for _, segment := range strings.Split(filepath.ToSlash(path), "/") {
+		if skipDirs[segment] {
+			return true
+		}
+	}
+	return false
+}
+
 // FindModule searches for a module with the given name in the specified search path
 // It recursively searches subdirectories and returns all matching directories
 // Only directories containing .tf or .tf.json files are considered valid modules
