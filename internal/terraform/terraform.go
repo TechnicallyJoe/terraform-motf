@@ -37,7 +37,7 @@ func (r *Runner) CheckBinary() error {
 To fix this, either:
   - Install terraform: https://terraform.io/downloads
   - Install tofu: https://opentofu.org/docs/intro/install
-  - Set 'binary: /path/to/terraform' in .motf.yml`, r.config.Binary)
+  - Set 'binary: terraform' or 'binary: tofu' in .motf.yml`, r.config.Binary)
 		}
 		return fmt.Errorf("failed to find %s: %w", r.config.Binary, err)
 	}
