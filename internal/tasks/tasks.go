@@ -13,6 +13,32 @@ type TaskConfig struct {
 	Description string `yaml:"description"`
 	Shell       string `yaml:"shell"`
 	Command     string `yaml:"command"`
+	Scope       string `yaml:"scope"`
+}
+
+// Task scope constants
+const (
+	ScopeModule = "module"
+	ScopeRoot   = "root"
+	ScopeGit    = "git"
+)
+
+// EffectiveScope returns the task's scope, defaulting to "module" if unset.
+func (tc *TaskConfig) EffectiveScope() string {
+	if tc.Scope == "" {
+		return ScopeModule
+	}
+	return tc.Scope
+}
+
+// ValidateScope returns an error if the scope value is not recognized.
+func (tc *TaskConfig) ValidateScope() error {
+	switch tc.EffectiveScope() {
+	case ScopeModule, ScopeRoot, ScopeGit:
+		return nil
+	default:
+		return fmt.Errorf("unknown scope %q, supported: module, root, git", tc.Scope)
+	}
 }
 
 // ShellConfig defines how to invoke a shell

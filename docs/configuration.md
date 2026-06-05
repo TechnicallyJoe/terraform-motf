@@ -45,6 +45,11 @@ tasks:
     description: "Run tflint on the module"
     command: "tflint --init && tflint"
 
+  fmt-all:
+    description: "Format all terraform files"
+    scope: root
+    command: "terraform fmt -recursive"
+
   docs:
     description: "Generate terraform-docs"
     shell: bash
@@ -205,6 +210,51 @@ tasks:
 | `command` | Yes | - | Shell command(s) to execute |
 | `description` | No | `""` | Description shown when listing tasks |
 | `shell` | No | `"sh"` | Shell to use for execution |
+| `scope` | No | `"module"` | Where the task runs: `module`, `root`, or `git` |
+
+### Task Scope
+
+The `scope` field controls where and how a task is executed:
+
+| Scope | Runs From | Behavior |
+|-------|-----------|----------|
+| `module` | Module directory | Default. Runs per-module, respects `--changed`, `--example`, and module name args |
+| `root` | Configured `root` path | Runs once from the path set by the `root` config option |
+| `git` | Git repository root | Runs once from the git repo root |
+
+Tasks with `scope: root` or `scope: git` ignore `--changed` and module discovery. They cannot be combined with `--example` or a positional module name.
+
+```yaml
+tasks:
+  # Runs per-module (default)
+  lint:
+    description: "Lint a single module"
+    command: "tflint --init && tflint"
+
+  # Runs once from the configured root (where modules live)
+  fmt-all:
+    description: "Format all terraform files"
+    command: "terraform fmt -recursive"
+    scope: root
+
+  # Runs once from the git repo root
+  pre-commit:
+    description: "Run pre-commit checks"
+    scope: git
+    shell: bash
+    command: |
+      set -e
+      pre-commit run --all-files
+```
+
+When listing tasks, non-module scopes are shown with an indicator:
+
+```
+Available tasks:
+  fmt-all [root]       Format all terraform files
+  lint                 Lint a single module
+  pre-commit [git]     Run pre-commit checks
+```
 
 ### Supported Shells
 
@@ -267,8 +317,8 @@ MOTF injects the following environment variables into every task execution:
 | Variable | Description |
 |----------|-------------|
 | `MOTF_GIT_ROOT` | Absolute path to the git repository root (empty if not in a git repo) |
-| `MOTF_MODULE_PATH` | Absolute path to the current module being processed |
-| `MOTF_MODULE_NAME` | Name of the module (last component of the path, e.g., `storage-account`) |
+| `MOTF_MODULE_PATH` | Absolute path to the current module being processed (empty for `root`/`git` scoped tasks) |
+| `MOTF_MODULE_NAME` | Name of the module (last component of the path, e.g., `storage-account`; empty for `root`/`git` scoped tasks) |
 | `MOTF_CONFIG_PATH` | Absolute path to the `.motf.yml` config file (empty if no config) |
 | `MOTF_BINARY` | The terraform/tofu binary name (`terraform` or `tofu`) |
 
@@ -299,6 +349,15 @@ tasks:
 tasks:
   pre-commit:
     description: "Run all pre-commit checks"
+    scope: git
+    shell: bash
+    command: |
+      set -e
+      terraform fmt -check -recursive
+      tflint --init && tflint --recursive
+
+  lint-module:
+    description: "Lint a single module"
     shell: bash
     command: |
       set -e

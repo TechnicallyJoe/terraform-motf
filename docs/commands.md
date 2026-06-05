@@ -464,13 +464,30 @@ See [Configuration](configuration#custom-tasks) for how to define tasks.
 | `--parallel` | `-p` | Run commands in parallel across modules |
 | `--max-parallel` | | Maximum parallel jobs (default: number of CPU cores) |
 
+### Task Scope
+
+Tasks with `scope: root` or `scope: git` run once from the configured root or git repository root respectively. They do not require a module name and ignore `--changed`:
+
+```bash
+# Run a root-scoped task (no module name needed)
+motf task -t fmt-all
+
+# Run a git-scoped task
+motf task -t pre-commit
+
+# --changed is ignored for scoped tasks
+motf task -t fmt-all --changed
+```
+
+Tasks with `scope: module` (the default) behave as normal per-module tasks.
+
 ### Examples
 
 ```bash
 # List available tasks
 motf task --list
 
-# Run a specific task
+# Run a specific task on a module
 motf task storage-account --task lint
 
 # Run a task on an example
@@ -484,6 +501,9 @@ motf task --changed --task lint
 
 # Run task on changed modules in parallel
 motf task --changed --task lint --parallel
+
+# Run a root/git scoped task (no module needed)
+motf task -t fmt-all
 ```
 
 ---

@@ -30,3 +30,9 @@ tasks:
     description: "ls on the root path"
     shell: bash
     command: "ls -la '$MOTF_GIT_ROOT'"
+
+  cat-config:
+    description: "Cat the .motf.yml file"
+    scope: root
+    shell: bash
+    command: "cat .motf.yml"
