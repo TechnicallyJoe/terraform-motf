@@ -1460,3 +1460,183 @@ tasks:
 		t.Errorf("expected 'unknown scope' in error, got: %s", outputStr)
 	}
 }
+
+func TestE2E_DescribeChanged(t *testing.T) {
+	motfBinary := buildMotf(t)
+	tmpDir := setupCleanGitRepo(t)
+
+	cmd := exec.Command(motfBinary, "describe", "--changed", "--ref", "HEAD")
+	cmd.Dir = tmpDir
+	output, err := cmd.CombinedOutput()
+	if err != nil {
+		t.Fatalf("motf describe --changed failed: %v\nOutput: %s", err, output)
+	}
+
+	if !strings.Contains(string(output), "No changed modules found") {
+		t.Errorf("expected 'No changed modules found' in clean repo, got: %s", output)
+	}
+}
+
+func TestE2E_DescribeChanged_DetectsModule(t *testing.T) {
+	motfBinary := buildMotf(t)
+	tmpDir := setupCleanGitRepo(t)
+
+	addUncommittedFile(t, tmpDir, []string{"test-module"}, "variables.tf", "variable \"%s\" { type = string }\n")
+
+	cmd := exec.Command(motfBinary, "describe", "--changed", "--ref", "HEAD")
+	cmd.Dir = tmpDir
+	output, err := cmd.CombinedOutput()
+	if err != nil {
+		t.Fatalf("motf describe --changed failed: %v\nOutput: %s", err, output)
+	}
+
+	if !strings.Contains(string(output), "test-module") {
+		t.Errorf("expected test-module in output, got: %s", output)
+	}
+}
+
+func TestE2E_DescribeChanged_JSON(t *testing.T) {
+	motfBinary := buildMotf(t)
+	tmpDir := setupCleanGitRepo(t)
+
+	cmd := exec.Command(motfBinary, "describe", "--changed", "--ref", "HEAD", "--json")
+	cmd.Dir = tmpDir
+	output, err := cmd.CombinedOutput()
+	if err != nil {
+		t.Fatalf("motf describe --changed --json failed: %v\nOutput: %s", err, output)
+	}
+
+	var result []interface{}
+	if err := json.Unmarshal(output, &result); err != nil {
+		t.Fatalf("describe --changed --json output is not valid JSON: %v\nOutput: %s", err, output)
+	}
+
+	if len(result) != 0 {
+		t.Errorf("expected empty array in clean repo, got: %v", result)
+	}
+}
+
+func TestE2E_DescribeChanged_JSON_DetectsModule(t *testing.T) {
+	motfBinary := buildMotf(t)
+	tmpDir := setupCleanGitRepo(t)
+
+	addUncommittedFile(t, tmpDir, []string{"test-module"}, "variables.tf", "variable \"%s\" { type = string }\n")
+
+	cmd := exec.Command(motfBinary, "describe", "--changed", "--ref", "HEAD", "--json")
+	cmd.Dir = tmpDir
+	output, err := cmd.CombinedOutput()
+	if err != nil {
+		t.Fatalf("motf describe --changed --json failed: %v\nOutput: %s", err, output)
+	}
+
+	var result []interface{}
+	if err := json.Unmarshal(output, &result); err != nil {
+		t.Fatalf("output is not valid JSON: %v\nOutput: %s", err, output)
+	}
+
+	if len(result) != 1 {
+		t.Fatalf("expected 1 element, got %d", len(result))
+	}
+}
+
+func TestE2E_GetChanged(t *testing.T) {
+	motfBinary := buildMotf(t)
+	tmpDir := setupCleanGitRepo(t)
+
+	cmd := exec.Command(motfBinary, "get", "--changed", "--ref", "HEAD")
+	cmd.Dir = tmpDir
+	output, err := cmd.CombinedOutput()
+	if err != nil {
+		t.Fatalf("motf get --changed failed: %v\nOutput: %s", err, output)
+	}
+
+	if !strings.Contains(string(output), "No changed modules found") {
+		t.Errorf("expected 'No changed modules found' in clean repo, got: %s", output)
+	}
+}
+
+func TestE2E_GetChanged_DetectsModule(t *testing.T) {
+	motfBinary := buildMotf(t)
+	tmpDir := setupCleanGitRepo(t)
+
+	addUncommittedFile(t, tmpDir, []string{"test-module"}, "outputs.tf", "output \"%s\" { value = \"x\" }\n")
+
+	cmd := exec.Command(motfBinary, "get", "--changed", "--ref", "HEAD")
+	cmd.Dir = tmpDir
+	output, err := cmd.CombinedOutput()
+	if err != nil {
+		t.Fatalf("motf get --changed failed: %v\nOutput: %s", err, output)
+	}
+
+	if !strings.Contains(string(output), "test-module") {
+		t.Errorf("expected test-module in output, got: %s", output)
+	}
+}
+
+func TestE2E_GetChanged_JSON(t *testing.T) {
+	motfBinary := buildMotf(t)
+	tmpDir := setupCleanGitRepo(t)
+
+	cmd := exec.Command(motfBinary, "get", "--changed", "--ref", "HEAD", "--json")
+	cmd.Dir = tmpDir
+	output, err := cmd.CombinedOutput()
+	if err != nil {
+		t.Fatalf("motf get --changed --json failed: %v\nOutput: %s", err, output)
+	}
+
+	var result []interface{}
+	if err := json.Unmarshal(output, &result); err != nil {
+		t.Fatalf("get --changed --json output is not valid JSON: %v\nOutput: %s", err, output)
+	}
+
+	if len(result) != 0 {
+		t.Errorf("expected empty array in clean repo, got: %v", result)
+	}
+}
+
+func TestE2E_GetChanged_JSON_DetectsModule(t *testing.T) {
+	motfBinary := buildMotf(t)
+	tmpDir := setupCleanGitRepo(t)
+
+	addUncommittedFile(t, tmpDir, []string{"test-module"}, "outputs.tf", "output \"%s\" { value = \"x\" }\n")
+
+	cmd := exec.Command(motfBinary, "get", "--changed", "--ref", "HEAD", "--json")
+	cmd.Dir = tmpDir
+	output, err := cmd.CombinedOutput()
+	if err != nil {
+		t.Fatalf("motf get --changed --json failed: %v\nOutput: %s", err, output)
+	}
+
+	var result []interface{}
+	if err := json.Unmarshal(output, &result); err != nil {
+		t.Fatalf("output is not valid JSON: %v\nOutput: %s", err, output)
+	}
+
+	if len(result) != 1 {
+		t.Fatalf("expected 1 element, got %d", len(result))
+	}
+}
+
+func TestE2E_DescribeChanged_RejectsModuleArg(t *testing.T) {
+	motfBinary := buildMotf(t)
+	tmpDir := setupCleanGitRepo(t)
+
+	cmd := exec.Command(motfBinary, "describe", "--changed", "--ref", "HEAD", "test-module")
+	cmd.Dir = tmpDir
+	_, err := cmd.CombinedOutput()
+	if err == nil {
+		t.Fatal("expected error when combining --changed with module arg")
+	}
+}
+
+func TestE2E_GetChanged_RejectsModuleArg(t *testing.T) {
+	motfBinary := buildMotf(t)
+	tmpDir := setupCleanGitRepo(t)
+
+	cmd := exec.Command(motfBinary, "get", "--changed", "--ref", "HEAD", "test-module")
+	cmd.Dir = tmpDir
+	_, err := cmd.CombinedOutput()
+	if err == nil {
+		t.Fatal("expected error when combining --changed with module arg")
+	}
+}

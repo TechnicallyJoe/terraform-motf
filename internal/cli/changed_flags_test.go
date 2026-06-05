@@ -46,3 +46,21 @@ func TestTestCmd_HasChangedFlags(t *testing.T) {
 		t.Fatal("testCmd should have --ref flag")
 	}
 }
+
+func TestDescribeCmd_HasChangedFlags(t *testing.T) {
+	if describeCmd.Flags().Lookup("changed") == nil {
+		t.Fatal("describeCmd should have --changed flag")
+	}
+	if describeCmd.Flags().Lookup("ref") == nil {
+		t.Fatal("describeCmd should have --ref flag")
+	}
+}
+
+func TestGetCmd_HasChangedFlags(t *testing.T) {
+	if getCmd.Flags().Lookup("changed") == nil {
+		t.Fatal("getCmd should have --changed flag")
+	}
+	if getCmd.Flags().Lookup("ref") == nil {
+		t.Fatal("getCmd should have --ref flag")
+	}
+}
