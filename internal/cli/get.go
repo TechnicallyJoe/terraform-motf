@@ -115,7 +115,7 @@ func getChangedJSON() error {
 		absPath := filepath.Join(basePath, mod.Path)
 		details, err := getModuleDetails(absPath)
 		if err != nil {
-			continue
+			return fmt.Errorf("failed to get details for %s: %w", mod.Path, err)
 		}
 		results = append(results, details)
 	}

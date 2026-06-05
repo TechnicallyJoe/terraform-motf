@@ -89,7 +89,7 @@ func describeChangedJSON() error {
 		absPath := filepath.Join(basePath, mod.Path)
 		schema, err := terraform.LoadModuleSchema(absPath, getRoot())
 		if err != nil {
-			continue
+			return fmt.Errorf("failed to parse module %s: %w", mod.Path, err)
 		}
 		schemas = append(schemas, schema)
 	}
@@ -118,6 +118,8 @@ func printSchemaToWriter(w io.Writer, schema *terraform.ModuleSchema) {
 	if schema.TerraformVersion != "" {
 		_, _ = fmt.Fprintf(w, "\nTerraform: %s\n", schema.TerraformVersion)
 	}
+
+	printExampleToWriter(w, schema)
 
 	if len(schema.Providers) > 0 {
 		_, _ = fmt.Fprintln(w, "\nProviders:")
@@ -273,6 +275,30 @@ func printExample(cmd *cobra.Command, schema *terraform.ModuleSchema) {
 	}
 
 	cmd.Println("  }")
+}
+
+func printExampleToWriter(w io.Writer, schema *terraform.ModuleSchema) {
+	_, _ = fmt.Fprintln(w, "\nExample:")
+	_, _ = fmt.Fprintf(w, "  module \"%s\" {\n", schema.Name)
+	_, _ = fmt.Fprintf(w, "    source = \"%s\"\n", schema.Path)
+
+	maxLen := 0
+	for _, v := range schema.Variables {
+		if v.Required && len(v.Name) > maxLen {
+			maxLen = len(v.Name)
+		}
+	}
+
+	if maxLen > 0 {
+		_, _ = fmt.Fprintln(w)
+		for _, v := range schema.Variables {
+			if v.Required {
+				_, _ = fmt.Fprintf(w, "    %-*s = %s\n", maxLen, v.Name, v.EmptyValueForType())
+			}
+		}
+	}
+
+	_, _ = fmt.Fprintln(w, "  }")
 }
 
 // normalizeType simplifies complex type definitions for display in tables.

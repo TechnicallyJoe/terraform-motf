@@ -620,7 +620,7 @@ func TestLoad_ExplicitConfigPath_RelativePath(t *testing.T) {
 	}
 }
 
-func TestLoad_TaskGlobalField(t *testing.T) {
+func TestLoad_TaskScopeField(t *testing.T) {
 	tmpDir := t.TempDir()
 
 	gitDir := filepath.Join(tmpDir, ".git")

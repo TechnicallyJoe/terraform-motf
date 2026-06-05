@@ -1389,6 +1389,34 @@ tasks:
 	}
 }
 
+// TestE2E_TaskScope_RejectsPath tests that --path is rejected for scoped tasks
+func TestE2E_TaskScope_RejectsPath(t *testing.T) {
+	motfBinary := buildMotf(t)
+	tmpDir := setupCleanGitRepo(t)
+
+	configContent := `binary: terraform
+tasks:
+  fmt-all:
+    command: echo hello
+    scope: git
+`
+	if err := os.WriteFile(filepath.Join(tmpDir, ".motf.yml"), []byte(configContent), 0644); err != nil {
+		t.Fatalf("failed to write config: %v", err)
+	}
+
+	cmd := exec.Command(motfBinary, "task", "--path", "./some/path", "-t", "fmt-all")
+	cmd.Dir = tmpDir
+	output, err := cmd.CombinedOutput()
+	if err == nil {
+		t.Fatalf("expected error when using --path with scoped task, output: %s", output)
+	}
+
+	outputStr := string(output)
+	if !strings.Contains(outputStr, "cannot use --path with git-scoped task") {
+		t.Errorf("expected error message about --path incompatibility, got: %s", outputStr)
+	}
+}
+
 // TestE2E_TaskScope_ListShowsScopeIndicator tests that --list shows scope for non-module tasks
 func TestE2E_TaskScope_ListShowsScopeIndicator(t *testing.T) {
 	motfBinary := buildMotf(t)
