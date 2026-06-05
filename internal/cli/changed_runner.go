@@ -141,9 +141,16 @@ func resolveChangedModules(basePath, repoRoot string, changedPaths []string) []M
 		if !hasTF || inSkipDir {
 			startFrom := absPath
 			if hasTF && inSkipDir {
-				// Directory has .tf files but is inside a skip dir — start
-				// from parent so findParentModule doesn't return this dir.
+				// Directory has .tf files but is inside a skip dir — walk up
+				// until the relative path no longer contains any skipDir segments.
 				startFrom = filepath.Dir(absPath)
+				for {
+					rel, err := filepath.Rel(repoRoot, startFrom)
+					if err != nil || !finder.PathContainsSkipDir(rel) {
+						break
+					}
+					startFrom = filepath.Dir(startFrom)
+				}
 			}
 			absPath = findParentModule(startFrom, basePath)
 			if absPath == "" {
