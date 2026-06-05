@@ -137,17 +137,18 @@ func TestResolveChangedModules_SkipsDirs(t *testing.T) {
 	// Create a module with examples/ subdirectories that contain .tf files, and a tests/ directory
 	moduleDir := filepath.Join(tmpDir, "components", "azurerm", "storage-account-test")
 	examplesBasic := filepath.Join(moduleDir, "examples", "basic")
+	examplesBasicNested := filepath.Join(moduleDir, "examples", "basic", "nested")
 	examplesPrivateLink := filepath.Join(moduleDir, "examples", "private-link")
 	testsDir := filepath.Join(moduleDir, "tests")
 
-	for _, dir := range []string{moduleDir, examplesBasic, examplesPrivateLink, testsDir} {
+	for _, dir := range []string{moduleDir, examplesBasic, examplesBasicNested, examplesPrivateLink, testsDir} {
 		if err := os.MkdirAll(dir, 0755); err != nil {
 			t.Fatal(err)
 		}
 	}
 
 	// All directories have .tf files
-	for _, dir := range []string{moduleDir, examplesBasic, examplesPrivateLink} {
+	for _, dir := range []string{moduleDir, examplesBasic, examplesBasicNested, examplesPrivateLink} {
 		if err := os.WriteFile(filepath.Join(dir, "main.tf"), []byte("# terraform"), 0644); err != nil {
 			t.Fatal(err)
 		}
@@ -168,6 +169,11 @@ func TestResolveChangedModules_SkipsDirs(t *testing.T) {
 		{
 			name:         "examples/basic resolves to parent module",
 			changedPaths: []string{"components/azurerm/storage-account-test/examples/basic"},
+			wantNames:    []string{"storage-account-test"},
+		},
+		{
+			name:         "deeper nested path under skip dir resolves to parent module",
+			changedPaths: []string{"components/azurerm/storage-account-test/examples/basic/nested"},
 			wantNames:    []string{"storage-account-test"},
 		},
 		{
