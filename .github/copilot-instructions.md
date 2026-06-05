@@ -1,3 +1,5 @@
+<!-- AUTO-GENERATED FROM .claude/claude.md. DO NOT EDIT DIRECTLY. -->
+
 # Copilot Instructions for motf
 
 ## Project Overview

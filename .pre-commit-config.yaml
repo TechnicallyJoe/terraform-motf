@@ -1,6 +1,16 @@
 # See https://pre-commit.com for more information
 # See https://github.com/TekWizely/pre-commit-golang for Go hooks
 repos:
+  # Local hooks
+  - repo: local
+    hooks:
+      - id: sync-copilot-instructions
+        name: Sync copilot instructions from claude.md
+        entry: bash .github/scripts/sync-copilot-instructions.sh
+        language: system
+        pass_filenames: false
+        always_run: true
+
   # Standard pre-commit hooks
   - repo: https://github.com/pre-commit/pre-commit-hooks
     rev: v4.5.0
