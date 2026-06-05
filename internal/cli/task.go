@@ -23,6 +23,11 @@ var taskCmd = &cobra.Command{
 Tasks are shell commands configured in your .motf.yml file under the 'tasks' section.
 By default, or with --list, shows all available tasks.
 
+Tasks support a 'scope' field to control where they run:
+  scope: module  (default) Run per-module as normal
+  scope: root    Run once from the configured root path
+  scope: git     Run once from the git repository root
+
 Examples:
   motf task storage-account                    # List available tasks
   motf task storage-account --list             # List available tasks
@@ -31,7 +36,8 @@ Examples:
   motf task storage-account -t lint -e basic   # Run 'lint' task on 'basic' example
   motf task --path ./modules/x -t docs         # Run task on explicit path
   motf task -t lint --changed                  # Run 'lint' task on changed modules
-  motf task -t lint --changed --parallel       # Run 'lint' task on changed modules in parallel`,
+  motf task -t lint --changed --parallel       # Run 'lint' task on changed modules in parallel
+  motf task -t fmt                             # Run scoped task (scope: root or git)`,
 	Args: cobra.MaximumNArgs(1),
 	RunE: func(cmd *cobra.Command, args []string) error {
 		// If no task specified, list tasks
@@ -41,6 +47,40 @@ Examples:
 
 		// Get git root (soft fail - empty string if not in git repo)
 		gitRoot, _ := git.GetRepoRoot()
+
+		// Non-module scoped tasks run once from a specific directory
+		if taskCfg := cfg.Tasks[taskFlag]; taskCfg != nil {
+			if err := taskCfg.ValidateScope(); err != nil {
+				return fmt.Errorf("task %q: %w", taskFlag, err)
+			}
+
+			scope := taskCfg.EffectiveScope()
+			if scope != tasks.ScopeModule {
+				if exampleFlag != "" || len(args) > 0 {
+					return fmt.Errorf("cannot use --example or module name with %s-scoped task %q", scope, taskFlag)
+				}
+
+				var workDir string
+				switch scope {
+				case tasks.ScopeGit:
+					workDir = gitRoot
+				case tasks.ScopeRoot:
+					basePath, err := getBasePath()
+					if err != nil {
+						return err
+					}
+					workDir = basePath
+				}
+
+				env := tasks.NewEnvBuilder().
+					WithGitRoot(gitRoot).
+					WithConfigPath(cfg.ConfigPath).
+					WithBinary(cfg.Binary).
+					Build()
+				taskRunner := tasks.NewRunner(cfg.Tasks, env)
+				return taskRunner.Run(taskFlag, workDir)
+			}
+		}
 
 		if changedFlag {
 			if exampleFlag != "" {
@@ -84,10 +124,14 @@ func listTasks() error {
 
 	for _, name := range names {
 		task := cfg.Tasks[name]
+		label := name
+		if scope := task.EffectiveScope(); scope != tasks.ScopeModule {
+			label = name + " [" + scope + "]"
+		}
 		if task.Description != "" {
-			fmt.Printf("  %-20s %s\n", name, task.Description)
+			fmt.Printf("  %-20s %s\n", label, task.Description)
 		} else {
-			fmt.Printf("  %s\n", name)
+			fmt.Printf("  %s\n", label)
 		}
 	}
 	return nil

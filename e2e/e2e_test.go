@@ -1242,3 +1242,221 @@ func TestE2E_ParallelFlag_MaxParallel(t *testing.T) {
 		}
 	}
 }
+
+// TestE2E_TaskScope_Git tests that a git-scoped task runs from the git root
+func TestE2E_TaskScope_Git(t *testing.T) {
+	motfBinary := buildMotf(t)
+	tmpDir := setupCleanGitRepo(t)
+
+	configContent := `binary: terraform
+tasks:
+  fmt-all:
+    description: "Format all"
+    command: echo "ran from $(pwd)"
+    scope: git
+`
+	if err := os.WriteFile(filepath.Join(tmpDir, ".motf.yml"), []byte(configContent), 0644); err != nil {
+		t.Fatalf("failed to write config: %v", err)
+	}
+
+	cmd := exec.Command(motfBinary, "task", "-t", "fmt-all")
+	cmd.Dir = tmpDir
+	output, err := cmd.CombinedOutput()
+	if err != nil {
+		t.Fatalf("motf task -t fmt-all failed: %v\nOutput: %s", err, output)
+	}
+
+	outputStr := string(output)
+	if !strings.Contains(outputStr, "ran from "+tmpDir) {
+		t.Errorf("expected task to run from git root %s, got: %s", tmpDir, outputStr)
+	}
+}
+
+// TestE2E_TaskScope_Root tests that a root-scoped task runs from the configured root
+func TestE2E_TaskScope_Root(t *testing.T) {
+	motfBinary := buildMotf(t)
+	tmpDir := setupCleanGitRepo(t)
+
+	// Set root to a subdirectory (different from git root)
+	configContent := `binary: terraform
+root: components
+tasks:
+  check:
+    description: "Check from root"
+    command: echo "ran from $(pwd)"
+    scope: root
+`
+	if err := os.WriteFile(filepath.Join(tmpDir, ".motf.yml"), []byte(configContent), 0644); err != nil {
+		t.Fatalf("failed to write config: %v", err)
+	}
+
+	cmd := exec.Command(motfBinary, "task", "-t", "check")
+	cmd.Dir = tmpDir
+	output, err := cmd.CombinedOutput()
+	if err != nil {
+		t.Fatalf("motf task -t check failed: %v\nOutput: %s", err, output)
+	}
+
+	outputStr := string(output)
+	expectedDir := filepath.Join(tmpDir, "components")
+	if !strings.Contains(outputStr, "ran from "+expectedDir) {
+		t.Errorf("expected task to run from root %s, got: %s", expectedDir, outputStr)
+	}
+}
+
+// TestE2E_TaskScope_IgnoresChanged tests that a scoped task ignores --changed
+func TestE2E_TaskScope_IgnoresChanged(t *testing.T) {
+	motfBinary := buildMotf(t)
+	tmpDir := setupCleanGitRepo(t)
+
+	configContent := `binary: terraform
+tasks:
+  check:
+    description: "Git check"
+    command: echo "scoped-check-ran"
+    scope: git
+`
+	if err := os.WriteFile(filepath.Join(tmpDir, ".motf.yml"), []byte(configContent), 0644); err != nil {
+		t.Fatalf("failed to write config: %v", err)
+	}
+
+	cmd := exec.Command(motfBinary, "task", "-t", "check", "--changed")
+	cmd.Dir = tmpDir
+	output, err := cmd.CombinedOutput()
+	if err != nil {
+		t.Fatalf("motf task -t check --changed failed: %v\nOutput: %s", err, output)
+	}
+
+	outputStr := string(output)
+	if !strings.Contains(outputStr, "scoped-check-ran") {
+		t.Errorf("expected 'scoped-check-ran' in output, got: %s", outputStr)
+	}
+}
+
+// TestE2E_TaskScope_RejectsExample tests that --example is rejected for scoped tasks
+func TestE2E_TaskScope_RejectsExample(t *testing.T) {
+	motfBinary := buildMotf(t)
+	tmpDir := setupCleanGitRepo(t)
+
+	configContent := `binary: terraform
+tasks:
+  fmt-all:
+    command: echo hello
+    scope: git
+`
+	if err := os.WriteFile(filepath.Join(tmpDir, ".motf.yml"), []byte(configContent), 0644); err != nil {
+		t.Fatalf("failed to write config: %v", err)
+	}
+
+	cmd := exec.Command(motfBinary, "task", "-t", "fmt-all", "-e", "basic")
+	cmd.Dir = tmpDir
+	output, err := cmd.CombinedOutput()
+	if err == nil {
+		t.Fatalf("expected error when using --example with scoped task, output: %s", output)
+	}
+
+	outputStr := string(output)
+	if !strings.Contains(outputStr, "cannot use --example or module name with git-scoped task") {
+		t.Errorf("expected error message about scope incompatibility, got: %s", outputStr)
+	}
+}
+
+// TestE2E_TaskScope_RejectsModuleName tests that positional module name is rejected for scoped tasks
+func TestE2E_TaskScope_RejectsModuleName(t *testing.T) {
+	motfBinary := buildMotf(t)
+	tmpDir := setupCleanGitRepo(t)
+
+	configContent := `binary: terraform
+tasks:
+  fmt-all:
+    command: echo hello
+    scope: root
+`
+	if err := os.WriteFile(filepath.Join(tmpDir, ".motf.yml"), []byte(configContent), 0644); err != nil {
+		t.Fatalf("failed to write config: %v", err)
+	}
+
+	cmd := exec.Command(motfBinary, "task", "some-module", "-t", "fmt-all")
+	cmd.Dir = tmpDir
+	output, err := cmd.CombinedOutput()
+	if err == nil {
+		t.Fatalf("expected error when using module name with scoped task, output: %s", output)
+	}
+
+	outputStr := string(output)
+	if !strings.Contains(outputStr, "cannot use --example or module name with root-scoped task") {
+		t.Errorf("expected error message about scope incompatibility, got: %s", outputStr)
+	}
+}
+
+// TestE2E_TaskScope_ListShowsScopeIndicator tests that --list shows scope for non-module tasks
+func TestE2E_TaskScope_ListShowsScopeIndicator(t *testing.T) {
+	motfBinary := buildMotf(t)
+	tmpDir := t.TempDir()
+
+	createModules(t, tmpDir, []string{"test-component"})
+
+	configContent := `binary: terraform
+tasks:
+  fmt-all:
+    description: "Format everything"
+    command: "terraform fmt -recursive"
+    scope: git
+  check:
+    description: "Check from root"
+    command: "echo check"
+    scope: root
+  lint:
+    description: "Lint module"
+    command: "tflint"
+`
+	if err := os.WriteFile(filepath.Join(tmpDir, ".motf.yml"), []byte(configContent), 0644); err != nil {
+		t.Fatalf("failed to write config: %v", err)
+	}
+
+	cmd := exec.Command(motfBinary, "task", "test-component", "--list")
+	cmd.Dir = tmpDir
+	output, err := cmd.CombinedOutput()
+	if err != nil {
+		t.Fatalf("motf task --list failed: %v\nOutput: %s", err, output)
+	}
+
+	outputStr := string(output)
+	if !strings.Contains(outputStr, "fmt-all [git]") {
+		t.Errorf("expected 'fmt-all [git]' in list output, got: %s", outputStr)
+	}
+	if !strings.Contains(outputStr, "check [root]") {
+		t.Errorf("expected 'check [root]' in list output, got: %s", outputStr)
+	}
+	if strings.Contains(outputStr, "lint [") {
+		t.Errorf("expected 'lint' without scope indicator in list output, got: %s", outputStr)
+	}
+}
+
+// TestE2E_TaskScope_InvalidScope tests that an invalid scope produces an error
+func TestE2E_TaskScope_InvalidScope(t *testing.T) {
+	motfBinary := buildMotf(t)
+	tmpDir := setupCleanGitRepo(t)
+
+	configContent := `binary: terraform
+tasks:
+  bad:
+    command: echo hello
+    scope: invalid
+`
+	if err := os.WriteFile(filepath.Join(tmpDir, ".motf.yml"), []byte(configContent), 0644); err != nil {
+		t.Fatalf("failed to write config: %v", err)
+	}
+
+	cmd := exec.Command(motfBinary, "task", "-t", "bad")
+	cmd.Dir = tmpDir
+	output, err := cmd.CombinedOutput()
+	if err == nil {
+		t.Fatalf("expected error for invalid scope, output: %s", output)
+	}
+
+	outputStr := string(output)
+	if !strings.Contains(outputStr, "unknown scope") {
+		t.Errorf("expected 'unknown scope' in error, got: %s", outputStr)
+	}
+}

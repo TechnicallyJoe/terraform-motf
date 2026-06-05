@@ -619,3 +619,54 @@ func TestLoad_ExplicitConfigPath_RelativePath(t *testing.T) {
 		t.Errorf("expected ConfigPath to be absolute, got '%s'", cfg.ConfigPath)
 	}
 }
+
+func TestLoad_TaskGlobalField(t *testing.T) {
+	tmpDir := t.TempDir()
+
+	gitDir := filepath.Join(tmpDir, ".git")
+	if err := os.Mkdir(gitDir, 0755); err != nil {
+		t.Fatalf("failed to create .git directory: %v", err)
+	}
+
+	configContent := `binary: terraform
+tasks:
+  fmt:
+    command: "terraform fmt -recursive"
+    scope: git
+  lint:
+    command: "tflint"
+    scope: root
+  test:
+    command: "go test ./..."
+`
+	configPath := filepath.Join(tmpDir, ".motf.yml")
+	if err := os.WriteFile(configPath, []byte(configContent), 0644); err != nil {
+		t.Fatalf("failed to create config file: %v", err)
+	}
+
+	cfg, err := Load(tmpDir, "")
+	if err != nil {
+		t.Fatalf("Load() returned error: %v", err)
+	}
+
+	if cfg.Tasks["fmt"] == nil {
+		t.Fatal("expected 'fmt' task to exist")
+	}
+	if cfg.Tasks["fmt"].Scope != "git" {
+		t.Errorf("expected 'fmt' task scope to be 'git', got %q", cfg.Tasks["fmt"].Scope)
+	}
+
+	if cfg.Tasks["lint"] == nil {
+		t.Fatal("expected 'lint' task to exist")
+	}
+	if cfg.Tasks["lint"].Scope != "root" {
+		t.Errorf("expected 'lint' task scope to be 'root', got %q", cfg.Tasks["lint"].Scope)
+	}
+
+	if cfg.Tasks["test"] == nil {
+		t.Fatal("expected 'test' task to exist")
+	}
+	if cfg.Tasks["test"].Scope != "" {
+		t.Errorf("expected 'test' task scope to be empty (default), got %q", cfg.Tasks["test"].Scope)
+	}
+}

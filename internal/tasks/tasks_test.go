@@ -218,3 +218,42 @@ func TestRunner_Run_Errors(t *testing.T) {
 		}
 	})
 }
+
+func TestTaskConfig_GlobalField(t *testing.T) {
+	t.Run("default scope is module", func(t *testing.T) {
+		tc := &TaskConfig{Command: "echo hello"}
+		if tc.EffectiveScope() != ScopeModule {
+			t.Errorf("expected default scope to be %q, got %q", ScopeModule, tc.EffectiveScope())
+		}
+	})
+
+	t.Run("scope git", func(t *testing.T) {
+		tc := &TaskConfig{Command: "echo hello", Scope: "git"}
+		if tc.EffectiveScope() != ScopeGit {
+			t.Errorf("expected scope %q, got %q", ScopeGit, tc.EffectiveScope())
+		}
+	})
+
+	t.Run("scope root", func(t *testing.T) {
+		tc := &TaskConfig{Command: "echo hello", Scope: "root"}
+		if tc.EffectiveScope() != ScopeRoot {
+			t.Errorf("expected scope %q, got %q", ScopeRoot, tc.EffectiveScope())
+		}
+	})
+
+	t.Run("validate rejects unknown scope", func(t *testing.T) {
+		tc := &TaskConfig{Command: "echo hello", Scope: "unknown"}
+		if err := tc.ValidateScope(); err == nil {
+			t.Error("expected error for unknown scope")
+		}
+	})
+
+	t.Run("validate accepts valid scopes", func(t *testing.T) {
+		for _, scope := range []string{"", "module", "root", "git"} {
+			tc := &TaskConfig{Command: "echo hello", Scope: scope}
+			if err := tc.ValidateScope(); err != nil {
+				t.Errorf("unexpected error for scope %q: %v", scope, err)
+			}
+		}
+	})
+}
