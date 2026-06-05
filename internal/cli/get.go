@@ -3,6 +3,7 @@ package cli
 import (
 	"encoding/json"
 	"fmt"
+	"io"
 	"os"
 	"path/filepath"
 	"strings"
@@ -34,6 +35,10 @@ Examples:
 
 func init() {
 	getCmd.Flags().BoolVar(&getJsonFlag, "json", false, "Output in JSON format")
+	getCmd.Flags().BoolVar(&changedFlag, "changed", false, "Run on modules changed compared to --ref")
+	getCmd.Flags().StringVar(&refFlag, "ref", "", "Git ref for --changed (default: auto-detect from origin/HEAD)")
+	getCmd.Flags().BoolVarP(&parallelFlag, "parallel", "p", false, "Run commands in parallel")
+	getCmd.Flags().IntVar(&maxParallelFlag, "max-parallel", 0, "Maximum parallel jobs (default: number of CPU cores)")
 	rootCmd.AddCommand(getCmd)
 }
 
@@ -58,6 +63,24 @@ type ItemInfo struct {
 }
 
 func runGet(cmd *cobra.Command, args []string) error {
+	if changedFlag {
+		if len(args) > 0 {
+			return cobra.MaximumNArgs(0)(cmd, args)
+		}
+		if getJsonFlag {
+			return getChangedJSON()
+		}
+		return runOnChangedModulesWithPath(func(moduleAbsPath string, stdout, stderr io.Writer) error {
+			details, err := getModuleDetails(moduleAbsPath)
+			if err != nil {
+				_, _ = fmt.Fprintf(stderr, "failed to get module details: %v\n", err)
+				return err
+			}
+			printModuleDetailsToWriter(stdout, details)
+			return nil
+		})
+	}
+
 	targetPath, err := resolveTargetPath(args)
 	if err != nil {
 		return err
@@ -73,6 +96,35 @@ func runGet(cmd *cobra.Command, args []string) error {
 	}
 
 	printModuleDetails(details)
+	return nil
+}
+
+func getChangedJSON() error {
+	modules, err := detectChangedModules(refFlag)
+	if err != nil {
+		return err
+	}
+
+	basePath, err := getBasePath()
+	if err != nil {
+		return err
+	}
+
+	results := make([]*ModuleDetails, 0)
+	for _, mod := range modules {
+		absPath := filepath.Join(basePath, mod.Path)
+		details, err := getModuleDetails(absPath)
+		if err != nil {
+			continue
+		}
+		results = append(results, details)
+	}
+
+	output, err := json.MarshalIndent(results, "", "  ")
+	if err != nil {
+		return fmt.Errorf("failed to marshal JSON: %w", err)
+	}
+	fmt.Println(string(output))
 	return nil
 }
 
@@ -195,6 +247,37 @@ func listTestFiles(path, basePath string) []ItemInfo {
 	}
 
 	return items
+}
+
+func printModuleDetailsToWriter(w io.Writer, details *ModuleDetails) {
+	_, _ = fmt.Fprintf(w, "Name:                  %s\n", details.Name)
+	_, _ = fmt.Fprintf(w, "Type:                  %s\n", formatType(details.Type))
+	_, _ = fmt.Fprintf(w, "Path:                  %s\n", details.Path)
+	_, _ = fmt.Fprintf(w, "Spacelift Version:     %s\n", details.SpaceliftVersion)
+	_, _ = fmt.Fprintf(w, "Has Submodules:        %s\n", formatBool(details.HasSubmodules))
+	_, _ = fmt.Fprintf(w, "Has Tests:             %s\n", formatBool(details.HasTests))
+	_, _ = fmt.Fprintf(w, "Has Examples:          %s\n", formatBool(details.HasExamples))
+
+	if len(details.Submodules) > 0 {
+		_, _ = fmt.Fprintln(w, "\nSubmodules:")
+		for _, ex := range details.Submodules {
+			_, _ = fmt.Fprintf(w, "  - %s (%s)\n", ex.Name, ex.Path)
+		}
+	}
+
+	if len(details.Examples) > 0 {
+		_, _ = fmt.Fprintln(w, "\nExamples:")
+		for _, ex := range details.Examples {
+			_, _ = fmt.Fprintf(w, "  - %s (%s)\n", ex.Name, ex.Path)
+		}
+	}
+
+	if len(details.Tests) > 0 {
+		_, _ = fmt.Fprintln(w, "\nTests:")
+		for _, ex := range details.Tests {
+			_, _ = fmt.Fprintf(w, "  - %s (%s)\n", ex.Name, ex.Path)
+		}
+	}
 }
 
 // printModuleDetails outputs the module details in a formatted way

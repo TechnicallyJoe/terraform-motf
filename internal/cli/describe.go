@@ -3,6 +3,8 @@ package cli
 import (
 	"encoding/json"
 	"fmt"
+	"io"
+	"path/filepath"
 	"strings"
 
 	"github.com/TechnicallyJoe/terraform-motf/internal/terraform"
@@ -27,10 +29,32 @@ input variables (with types, defaults, and descriptions), and outputs.`,
 
 func init() {
 	describeCmd.Flags().BoolVar(&describeJsonFlag, "json", false, "Output in JSON format")
+	describeCmd.Flags().BoolVar(&changedFlag, "changed", false, "Run on modules changed compared to --ref")
+	describeCmd.Flags().StringVar(&refFlag, "ref", "", "Git ref for --changed (default: auto-detect from origin/HEAD)")
+	describeCmd.Flags().BoolVarP(&parallelFlag, "parallel", "p", false, "Run commands in parallel")
+	describeCmd.Flags().IntVar(&maxParallelFlag, "max-parallel", 0, "Maximum parallel jobs (default: number of CPU cores)")
 	rootCmd.AddCommand(describeCmd)
 }
 
 func runDescribe(cmd *cobra.Command, args []string) error {
+	if changedFlag {
+		if len(args) > 0 {
+			return cobra.MaximumNArgs(0)(cmd, args)
+		}
+		if describeJsonFlag {
+			return describeChangedJSON()
+		}
+		return runOnChangedModulesWithPath(func(moduleAbsPath string, stdout, stderr io.Writer) error {
+			schema, err := terraform.LoadModuleSchema(moduleAbsPath, getRoot())
+			if err != nil {
+				_, _ = fmt.Fprintf(stderr, "failed to parse module: %v\n", err)
+				return err
+			}
+			printSchemaToWriter(stdout, schema)
+			return nil
+		})
+	}
+
 	targetPath, err := resolveTargetPath(args)
 	if err != nil {
 		return err
@@ -49,6 +73,35 @@ func runDescribe(cmd *cobra.Command, args []string) error {
 	return nil
 }
 
+func describeChangedJSON() error {
+	modules, err := detectChangedModules(refFlag)
+	if err != nil {
+		return err
+	}
+
+	basePath, err := getBasePath()
+	if err != nil {
+		return err
+	}
+
+	schemas := make([]*terraform.ModuleSchema, 0)
+	for _, mod := range modules {
+		absPath := filepath.Join(basePath, mod.Path)
+		schema, err := terraform.LoadModuleSchema(absPath, getRoot())
+		if err != nil {
+			continue
+		}
+		schemas = append(schemas, schema)
+	}
+
+	output, err := json.MarshalIndent(schemas, "", "  ")
+	if err != nil {
+		return fmt.Errorf("failed to marshal JSON: %w", err)
+	}
+	fmt.Println(string(output))
+	return nil
+}
+
 func printSchemaJSON(cmd *cobra.Command, schema *terraform.ModuleSchema) error {
 	output, err := json.MarshalIndent(schema, "", "  ")
 	if err != nil {
@@ -56,6 +109,69 @@ func printSchemaJSON(cmd *cobra.Command, schema *terraform.ModuleSchema) error {
 	}
 	cmd.Println(string(output))
 	return nil
+}
+
+func printSchemaToWriter(w io.Writer, schema *terraform.ModuleSchema) {
+	_, _ = fmt.Fprintf(w, "Module: %s\n", schema.Name)
+	_, _ = fmt.Fprintf(w, "Path:   %s\n", schema.Path)
+
+	if schema.TerraformVersion != "" {
+		_, _ = fmt.Fprintf(w, "\nTerraform: %s\n", schema.TerraformVersion)
+	}
+
+	if len(schema.Providers) > 0 {
+		_, _ = fmt.Fprintln(w, "\nProviders:")
+		_, _ = fmt.Fprintf(w, "  %-20s %s\n", "NAME", "VERSION")
+		for _, p := range schema.Providers {
+			version := p.Version
+			if version == "" {
+				version = "(any)"
+			}
+			_, _ = fmt.Fprintf(w, "  %-20s %s\n", p.Name, version)
+		}
+	}
+
+	if len(schema.Variables) > 0 {
+		_, _ = fmt.Fprintln(w, "\nVariables:")
+		_, _ = fmt.Fprintf(w, "  %-25s %-15s %-15s %s\n", "NAME", "TYPE", "DEFAULT", "DESCRIPTION")
+		for _, v := range schema.Variables {
+			typeStr := normalizeType(v.Type)
+			defaultStr := v.DefaultString()
+			descLines := wrapText(v.Description, 60)
+			firstDesc := ""
+			if len(descLines) > 0 {
+				firstDesc = descLines[0]
+			}
+			_, _ = fmt.Fprintf(w, "  %-25s %-15s %-15s %s\n", truncate(v.Name, 25), truncate(typeStr, 15), truncate(defaultStr, 15), firstDesc)
+			for i := 1; i < len(descLines); i++ {
+				_, _ = fmt.Fprintf(w, "  %-25s %-15s %-15s %s\n", "", "", "", descLines[i])
+			}
+		}
+	}
+
+	if len(schema.Outputs) > 0 {
+		_, _ = fmt.Fprintln(w, "\nOutputs:")
+		_, _ = fmt.Fprintf(w, "  %-25s %s\n", "NAME", "DESCRIPTION")
+		for _, o := range schema.Outputs {
+			desc := o.Description
+			if o.Sensitive {
+				if desc != "" {
+					desc += " (sensitive)"
+				} else {
+					desc = "(sensitive)"
+				}
+			}
+			descLines := wrapText(desc, 60)
+			firstDesc := ""
+			if len(descLines) > 0 {
+				firstDesc = descLines[0]
+			}
+			_, _ = fmt.Fprintf(w, "  %-25s %s\n", truncate(o.Name, 25), firstDesc)
+			for i := 1; i < len(descLines); i++ {
+				_, _ = fmt.Fprintf(w, "  %-25s %s\n", "", descLines[i])
+			}
+		}
+	}
 }
 
 func printSchema(cmd *cobra.Command, schema *terraform.ModuleSchema) {

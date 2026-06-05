@@ -344,9 +344,13 @@ motf get <module-name> [flags]
 
 ### Flags
 
-| Flag | Description |
-|------|-------------|
-| `--json` | Output in JSON format |
+| Flag | Short | Description |
+|------|-------|-------------|
+| `--json` | | Output in JSON format |
+| `--changed` | | Run on all modules changed compared to `--ref` |
+| `--ref` | | Git ref to compare against (default: auto-detect from `origin/HEAD`) |
+| `--parallel` | `-p` | Run commands in parallel across modules |
+| `--max-parallel` | | Maximum parallel jobs (default: number of CPU cores) |
 
 ### Examples
 
@@ -359,6 +363,15 @@ motf get --path ./my-module
 
 # Output as JSON
 motf get storage-account --json
+
+# Get details for all changed modules
+motf get --changed
+
+# Get changed modules as JSON array
+motf get --changed --json
+
+# Get changed modules in parallel
+motf get --changed --parallel
 ```
 
 ### Output
@@ -391,9 +404,13 @@ motf describe <module-name> [flags]
 
 ### Flags
 
-| Flag | Description |
-|------|-------------|
-| `--json` | Output in JSON format |
+| Flag | Short | Description |
+|------|-------|-------------|
+| `--json` | | Output in JSON format |
+| `--changed` | | Run on all modules changed compared to `--ref` |
+| `--ref` | | Git ref to compare against (default: auto-detect from `origin/HEAD`) |
+| `--parallel` | `-p` | Run commands in parallel across modules |
+| `--max-parallel` | | Maximum parallel jobs (default: number of CPU cores) |
 
 ### Examples
 
@@ -406,6 +423,15 @@ motf describe --path ./my-module
 
 # Output as JSON
 motf describe storage-account --json
+
+# Describe all changed modules
+motf describe --changed
+
+# Describe changed modules as JSON array
+motf describe --changed --json
+
+# Describe changed modules in parallel
+motf describe --changed --parallel
 ```
 
 ### Output
