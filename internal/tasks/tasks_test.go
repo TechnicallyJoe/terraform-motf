@@ -219,7 +219,7 @@ func TestRunner_Run_Errors(t *testing.T) {
 	})
 }
 
-func TestTaskConfig_GlobalField(t *testing.T) {
+func TestTaskConfig_ScopeField(t *testing.T) {
 	t.Run("default scope is module", func(t *testing.T) {
 		tc := &TaskConfig{Command: "echo hello"}
 		if tc.EffectiveScope() != ScopeModule {

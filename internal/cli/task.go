@@ -59,10 +59,16 @@ Examples:
 				if exampleFlag != "" || len(args) > 0 {
 					return fmt.Errorf("cannot use --example or module name with %s-scoped task %q", scope, taskFlag)
 				}
+				if pathFlag != "" {
+					return fmt.Errorf("cannot use --path with %s-scoped task %q", scope, taskFlag)
+				}
 
 				var workDir string
 				switch scope {
 				case tasks.ScopeGit:
+					if gitRoot == "" {
+						return fmt.Errorf("task %q has scope %q but not in a git repository", taskFlag, scope)
+					}
 					workDir = gitRoot
 				case tasks.ScopeRoot:
 					basePath, err := getBasePath()
@@ -74,6 +80,8 @@ Examples:
 
 				env := tasks.NewEnvBuilder().
 					WithGitRoot(gitRoot).
+					WithModulePath("").
+					WithModuleName("").
 					WithConfigPath(cfg.ConfigPath).
 					WithBinary(cfg.Binary).
 					Build()
