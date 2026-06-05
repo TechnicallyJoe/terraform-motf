@@ -17,7 +17,8 @@ Use the --example/-e flag to run init on a specific example instead of the modul
 Examples:
   motf init storage-account              # Run init on storage-account module
   motf init storage-account -e basic     # Run init on the 'basic' example`,
-	Args: cobra.MaximumNArgs(1),
+	Args:    cobra.MaximumNArgs(1),
+	PreRunE: requiresBinary,
 	RunE: func(cmd *cobra.Command, args []string) error {
 		if changedFlag {
 			if len(args) > 0 {

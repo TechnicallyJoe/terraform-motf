@@ -19,7 +19,8 @@ Examples:
   motf plan storage-account -e basic        # Run plan on the 'basic' example
   motf plan storage-account --example basic # Run plan on the 'basic' example
   motf plan -i storage-account              # Run init then plan`,
-	Args: cobra.MaximumNArgs(1),
+	Args:    cobra.MaximumNArgs(1),
+	PreRunE: requiresBinary,
 	RunE: func(cmd *cobra.Command, args []string) error {
 		if changedFlag {
 			if len(args) > 0 {

@@ -19,7 +19,8 @@ Examples:
   motf test storage-account                    # Run tests on storage-account module
   motf test storage-account -a -v              # Run tests with verbose output
   motf test storage-account -a -timeout=30m    # Run tests with custom timeout`,
-	Args: cobra.MaximumNArgs(1),
+	Args:    cobra.MaximumNArgs(1),
+	PreRunE: requiresBinary,
 	RunE: func(cmd *cobra.Command, args []string) error {
 		if changedFlag {
 			if len(args) > 0 {
