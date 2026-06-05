@@ -134,7 +134,7 @@ func TestResolveChangedModules(t *testing.T) {
 func TestResolveChangedModules_SkipsDirs(t *testing.T) {
 	tmpDir := t.TempDir()
 
-	// Create a module with examples/ and tests/ subdirectories that contain .tf files
+	// Create a module with examples/ subdirectories that contain .tf files, and a tests/ directory
 	moduleDir := filepath.Join(tmpDir, "components", "azurerm", "storage-account-test")
 	examplesBasic := filepath.Join(moduleDir, "examples", "basic")
 	examplesPrivateLink := filepath.Join(moduleDir, "examples", "private-link")

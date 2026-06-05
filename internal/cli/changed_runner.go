@@ -188,7 +188,7 @@ func resolveChangedModules(basePath, repoRoot string, changedPaths []string) []M
 }
 
 // findParentModule walks up the directory tree to find a parent that contains .tf files
-// and is not inside a skipDir.
+// and is not itself a skipDir.
 func findParentModule(startPath, stopPath string) string {
 	current := startPath
 	for {

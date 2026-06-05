@@ -152,8 +152,10 @@ func (r *Runner) RunTestWithOutput(dir string, stdout, stderr io.Writer, extraAr
 		cmd.Stderr = io.MultiWriter(stderr, &stderrBuf)
 
 		if err := cmd.Run(); err != nil {
-			if strings.Contains(stderrBuf.String(), "matched no packages") {
-				return nil
+			if exitErr, ok := err.(*exec.ExitError); ok && exitErr.ExitCode() == 1 {
+				if strings.Contains(stderrBuf.String(), "matched no packages") {
+					return nil
+				}
 			}
 			return err
 		}
