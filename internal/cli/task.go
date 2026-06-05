@@ -132,6 +132,9 @@ func listTasks() error {
 
 	for _, name := range names {
 		task := cfg.Tasks[name]
+		if err := task.ValidateScope(); err != nil {
+			return fmt.Errorf("task %q: %w", name, err)
+		}
 		label := name
 		if scope := task.EffectiveScope(); scope != tasks.ScopeModule {
 			label = name + " [" + scope + "]"
