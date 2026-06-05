@@ -18,7 +18,8 @@ Examples:
   motf fmt storage-account              # Run fmt on storage-account module
   motf fmt storage-account -e basic     # Run fmt on the 'basic' example
   motf fmt -i storage-account -e basic  # Run init then fmt on the 'basic' example`,
-	Args: cobra.MaximumNArgs(1),
+	Args:     cobra.MaximumNArgs(1),
+	PreRunE:  requiresBinary,
 	RunE: func(cmd *cobra.Command, args []string) error {
 		if changedFlag {
 			if len(args) > 0 {

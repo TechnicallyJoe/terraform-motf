@@ -101,3 +101,12 @@ func init() {
 func Execute() error {
 	return rootCmd.Execute()
 }
+
+// requiresBinary is a PreRunE hook for commands that need the terraform/tofu binary
+func requiresBinary(cmd *cobra.Command, args []string) error {
+	if err := runner.CheckBinary(); err != nil {
+		cmd.SilenceUsage = true
+		return err
+	}
+	return nil
+}

@@ -1,6 +1,7 @@
 package terraform
 
 import (
+	"strings"
 	"testing"
 
 	"github.com/TechnicallyJoe/terraform-motf/internal/config"
@@ -73,6 +74,58 @@ func TestRunner_InheritsConfigBinary(t *testing.T) {
 	cfg.Binary = "terraform"
 	if runner.Binary() != "terraform" {
 		t.Errorf("expected Binary to be 'terraform' after config change, got '%s'", runner.Binary())
+	}
+}
+
+func TestRunner_CheckBinary(t *testing.T) {
+	tests := []struct {
+		name      string
+		binary    string
+		wantErr   bool
+		errSubstr string
+	}{
+		{
+			name:    "existing binary (sh)",
+			binary:  "sh",
+			wantErr: false,
+		},
+		{
+			name:      "non-existent binary",
+			binary:    "nonexistent-binary-12345",
+			wantErr:   true,
+			errSubstr: "(configured binary) not found in PATH",
+		},
+		{
+			name:      "error includes install hints",
+			binary:    "nonexistent-tf-binary-xyz",
+			wantErr:   true,
+			errSubstr: "terraform.io/downloads",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			cfg := &config.Config{
+				Root:   "/test/root",
+				Binary: tt.binary,
+			}
+			runner := NewRunner(cfg)
+			err := runner.CheckBinary()
+
+			if tt.wantErr {
+				if err == nil {
+					t.Errorf("CheckBinary() expected error, got nil")
+					return
+				}
+				if tt.errSubstr != "" && !strings.Contains(err.Error(), tt.errSubstr) {
+					t.Errorf("CheckBinary() error = %q, want substring %q", err.Error(), tt.errSubstr)
+				}
+			} else {
+				if err != nil {
+					t.Errorf("CheckBinary() unexpected error: %v", err)
+				}
+			}
+		})
 	}
 }
 

@@ -2,6 +2,7 @@ package terraform
 
 import (
 	"bytes"
+	"errors"
 	"fmt"
 	"io"
 	"os"
@@ -24,6 +25,23 @@ func NewRunner(cfg *config.Config) *Runner {
 // Binary returns the configured binary name
 func (r *Runner) Binary() string {
 	return r.config.Binary
+}
+
+// CheckBinary verifies the configured binary exists in PATH
+func (r *Runner) CheckBinary() error {
+	_, err := exec.LookPath(r.config.Binary)
+	if err != nil {
+		if errors.Is(err, exec.ErrNotFound) {
+			return fmt.Errorf(`'%s' (configured binary) not found in PATH
+
+To fix this, either:
+  - Install terraform: https://terraform.io/downloads
+  - Install tofu: https://opentofu.org/docs/intro/install
+  - Set 'binary: /path/to/terraform' in .motf.yml`, r.config.Binary)
+		}
+		return fmt.Errorf("failed to find %s: %w", r.config.Binary, err)
+	}
+	return nil
 }
 
 // RunInit executes terraform/tofu init in the specified directory
