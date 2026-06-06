@@ -64,3 +64,12 @@ func TestGetCmd_HasChangedFlags(t *testing.T) {
 		t.Fatal("getCmd should have --ref flag")
 	}
 }
+
+func TestApplyCmd_HasChangedFlags(t *testing.T) {
+	if applyCmd.Flags().Lookup("changed") == nil {
+		t.Fatal("applyCmd should have --changed flag")
+	}
+	if applyCmd.Flags().Lookup("ref") == nil {
+		t.Fatal("applyCmd should have --ref flag")
+	}
+}

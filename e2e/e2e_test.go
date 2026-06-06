@@ -547,6 +547,21 @@ func TestE2E_FmtChanged_NoOp(t *testing.T) {
 	}
 }
 
+func TestE2E_ApplyChanged_NoOp(t *testing.T) {
+	motfBinary := buildMotf(t)
+	tmpDir := setupCleanGitRepo(t)
+
+	cmd := exec.Command(motfBinary, "apply", "--changed", "--ref", "HEAD")
+	cmd.Dir = tmpDir
+	output, err := cmd.CombinedOutput()
+	if err != nil {
+		t.Fatalf("motf apply --changed failed: %v\nOutput: %s", err, output)
+	}
+	if !strings.Contains(string(output), "No changed modules found") {
+		t.Errorf("expected no-op message, got: %s", output)
+	}
+}
+
 func TestE2E_ListChangedCommand_DetectsUncommitted(t *testing.T) {
 	motfBinary := buildMotf(t)
 	tmpDir := setupCleanGitRepo(t)

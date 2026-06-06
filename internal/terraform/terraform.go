@@ -112,6 +112,23 @@ func (r *Runner) RunPlanWithOutput(dir string, stdout, stderr io.Writer, extraAr
 	return cmd.Run()
 }
 
+// RunApply executes terraform/tofu apply in the specified directory
+func (r *Runner) RunApply(dir string, extraArgs ...string) error {
+	return r.RunApplyWithOutput(dir, os.Stdout, os.Stderr, extraArgs...)
+}
+
+// RunApplyWithOutput executes terraform/tofu apply with custom output writers
+func (r *Runner) RunApplyWithOutput(dir string, stdout, stderr io.Writer, extraArgs ...string) error {
+	args := append([]string{"apply"}, extraArgs...)
+	cmd := exec.Command(r.config.Binary, args...) //nolint:gosec // Binary is validated to be terraform or tofu
+	cmd.Dir = dir
+	cmd.Stdout = stdout
+	cmd.Stderr = stderr
+
+	_, _ = fmt.Fprintf(stdout, "Running %s %s in %s\n", r.config.Binary, strings.Join(args, " "), dir)
+	return cmd.Run()
+}
+
 // RunTest executes tests based on the configured test engine
 func (r *Runner) RunTest(dir string, extraArgs ...string) error {
 	return r.RunTestWithOutput(dir, os.Stdout, os.Stderr, extraArgs...)
