@@ -132,6 +132,9 @@ func listTasks() error {
 
 	for _, name := range names {
 		task := cfg.Tasks[name]
+		if task == nil {
+			return fmt.Errorf("task %q has an empty definition in .motf.yml", name)
+		}
 		if err := task.ValidateScope(); err != nil {
 			return fmt.Errorf("task %q: %w", name, err)
 		}
