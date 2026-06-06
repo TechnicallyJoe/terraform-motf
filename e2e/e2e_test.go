@@ -1489,6 +1489,63 @@ tasks:
 	}
 }
 
+// TestE2E_TaskScope_InvalidScope_List tests that --list fails fast on invalid scope
+func TestE2E_TaskScope_InvalidScope_List(t *testing.T) {
+	motfBinary := buildMotf(t)
+	tmpDir := setupCleanGitRepo(t)
+
+	configContent := `binary: terraform
+tasks:
+  bad:
+    command: echo hello
+    scope: invalid
+`
+	if err := os.WriteFile(filepath.Join(tmpDir, ".motf.yml"), []byte(configContent), 0644); err != nil {
+		t.Fatalf("failed to write config: %v", err)
+	}
+
+	cmd := exec.Command(motfBinary, "task", "--list")
+	cmd.Dir = tmpDir
+	output, err := cmd.CombinedOutput()
+	if err == nil {
+		t.Fatalf("expected error for invalid scope in --list, output: %s", output)
+	}
+
+	outputStr := string(output)
+	if !strings.Contains(outputStr, "unknown scope") {
+		t.Errorf("expected 'unknown scope' in error, got: %s", outputStr)
+	}
+	if !strings.Contains(outputStr, `"bad"`) {
+		t.Errorf("expected task name 'bad' in error, got: %s", outputStr)
+	}
+}
+
+// TestE2E_TaskScope_NilTask tests that a nil task definition produces an error
+func TestE2E_TaskScope_NilTask(t *testing.T) {
+	motfBinary := buildMotf(t)
+	tmpDir := setupCleanGitRepo(t)
+
+	configContent := `binary: terraform
+tasks:
+  empty-task:
+`
+	if err := os.WriteFile(filepath.Join(tmpDir, ".motf.yml"), []byte(configContent), 0644); err != nil {
+		t.Fatalf("failed to write config: %v", err)
+	}
+
+	cmd := exec.Command(motfBinary, "task", "--list")
+	cmd.Dir = tmpDir
+	output, err := cmd.CombinedOutput()
+	if err == nil {
+		t.Fatalf("expected error for nil task, output: %s", output)
+	}
+
+	outputStr := string(output)
+	if !strings.Contains(outputStr, "empty definition") {
+		t.Errorf("expected 'empty definition' in error, got: %s", outputStr)
+	}
+}
+
 func TestE2E_DescribeChanged(t *testing.T) {
 	motfBinary := buildMotf(t)
 	tmpDir := setupCleanGitRepo(t)
