@@ -122,6 +122,7 @@ func (r *Runner) RunApplyWithOutput(dir string, stdout, stderr io.Writer, extraA
 	args := append([]string{"apply"}, extraArgs...)
 	cmd := exec.Command(r.config.Binary, args...) //nolint:gosec // Binary is validated to be terraform or tofu
 	cmd.Dir = dir
+	cmd.Stdin = os.Stdin
 	cmd.Stdout = stdout
 	cmd.Stderr = stderr
 
