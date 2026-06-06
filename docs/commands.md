@@ -205,6 +205,52 @@ motf plan storage-account -a -var="env=prod"
 
 ---
 
+## apply
+
+Run `terraform apply` or `tofu apply` on a module.
+
+```bash
+motf apply <module-name> [flags]
+```
+
+### Flags
+
+| Flag | Short | Description |
+|------|-------|-------------|
+| `--init` | `-i` | Run init before applying |
+| `--example` | `-e` | Run on a specific example instead of the module |
+| `--changed` | | Run on all modules changed compared to `--ref` |
+| `--ref` | | Git ref to compare against (default: auto-detect) |
+| `--parallel` | `-p` | Run commands in parallel across modules |
+| `--max-parallel` | | Maximum parallel jobs (default: number of CPU cores) |
+
+### Examples
+
+```bash
+# Apply a module
+motf apply storage-account
+
+# Apply with init
+motf apply -i storage-account
+
+# Apply an example
+motf apply storage-account -e basic
+
+# Apply without confirmation prompt
+motf apply storage-account -a -auto-approve
+
+# Apply all changed modules
+motf apply --changed
+
+# Apply all changed modules in parallel
+motf apply --changed --parallel
+
+# Apply with extra arguments
+motf apply storage-account -a -var="env=prod"
+```
+
+---
+
 ## test
 
 Run tests on a module using the configured test engine.
